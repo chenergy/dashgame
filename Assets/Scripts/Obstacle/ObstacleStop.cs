@@ -4,8 +4,10 @@ using System.Collections;
 public class ObstacleStop : MonoBehaviour, I_Obstacle
 {
 	void OnTriggerEnter(Collider other){
-		if (other.tag == "Player") {
-			this.AffectPlayer();
+		if (GameController.CanCollide) {
+			if (other.tag == "Ball") {
+				this.AffectPlayer ();
+			}
 		}
 	}
 

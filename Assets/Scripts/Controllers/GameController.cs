@@ -5,12 +5,15 @@ public class GameController : MonoBehaviour {
 	private static GameController instance = null;
 
 	public GameObject 		testPlayer;
+	public PlayerEntity 	activePlayer;
 	public float 			speed 			= 20.0f;
+	public float			speedIncrement	= 1.0f;
+	public float 			maxSpeed 		= 75.0f;
 
-	private PlayerEntity 	activePlayer;
 	private int 			coins 			= 0;
 	private bool 			stopped 		= true;
 	private bool 			gameOver 		= false;
+	private bool			canCollide 		= true;
 
 	void Awake(){
 		if (GameController.instance == null) {
@@ -22,14 +25,28 @@ public class GameController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		instance.activePlayer = (GameObject.Instantiate (instance.testPlayer, 
+		if (instance.activePlayer == null) {
+			instance.activePlayer = (GameObject.Instantiate (instance.testPlayer, 
 		                                                 Vector3.zero, 
 		                                                 instance.testPlayer.transform.rotation) 
-		                         as GameObject).GetComponent<PlayerEntity>();
+		                         as GameObject).GetComponent<PlayerEntity> ();
+		}
 	}
 
+	void Update(){
+		if (!instance.stopped) {
+			if (instance.speed < instance.maxSpeed){
+				instance.speed += instance.speedIncrement * Time.deltaTime;
+			}
+		}
+	}
 	
 	void OnGUI(){
+		//GUI.TextArea (new Rect (0, 0, 200, 20), string.Format("Coins: {0}", instance.coins));
+		if (instance.stopped) {
+			instance.canCollide = GUI.Toggle (new Rect (0, 20, 200, 20), instance.canCollide, "Can Collide?");
+		}
+
 		if (instance.stopped && !instance.gameOver) {
 			if (GUI.Button (new Rect (Screen.width/2 - 50, Screen.height/2 - 50, 100, 100), "Start")) {
 				GameController.StartGame ();
@@ -51,11 +68,11 @@ public class GameController : MonoBehaviour {
 	}
 
 	public static void SwipeDown(){
-		instance.activePlayer.Duck ();
+		instance.activePlayer.MoveDown ();
 	}
 	
 	public static void SwipeUp(){
-		instance.activePlayer.Jump ();
+		instance.activePlayer.MoveUp ();
 	}
 
 	public static void StartGame(){
@@ -66,12 +83,17 @@ public class GameController : MonoBehaviour {
 
 	public static void EndGame(){
 		LevelController.StopLevel ();
+		instance.activePlayer.Die ();
 		instance.stopped = true;
 		instance.gameOver = true;
 	}
 
 	public static void AddCoins(int num){
 		instance.coins += num;
+
+		if (instance.coins % 50 == 0) {
+			instance.activePlayer.Expand();
+		}
 	}
 
 	public static int Coins{
@@ -88,5 +110,9 @@ public class GameController : MonoBehaviour {
 
 	public static PlayerEntity ActivePlayer{
 		get { return instance.activePlayer; }
+	}
+
+	public static bool CanCollide{
+		get { return instance.canCollide; }
 	}
 }

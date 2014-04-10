@@ -9,6 +9,7 @@ public class LevelController : MonoBehaviour
 	public GameObject[] 		sections;
 	public Transform 			nextSectionSpawnLocation;
 	public GameObject			baseLaneTransform;
+	public int 					preLoadedSections = 15;
 
 	private int 				numSections;
 	private GameObject 			parentLevel;
@@ -30,7 +31,7 @@ public class LevelController : MonoBehaviour
 
 			// Temporary auto-start level generation
 			instance.paths = new List<Vector3[][]>();
-			for(int i = 0; i < 10; i++){
+			for(int i = 0; i < instance.preLoadedSections; i++){
 				LevelController.GenerateNextLevelSection();
 			}
 		} else {
@@ -73,7 +74,10 @@ public class LevelController : MonoBehaviour
 		instance.centerTransform.Stop ();
 		instance.rightTransform.Stop ();
 
-		GameController.ActivePlayer.Die ();
+		GameObject[] grounds = GameObject.FindGameObjectsWithTag("Ground");
+		foreach (GameObject g in grounds) {
+			g.GetComponent<MeshCollider>().enabled = true;
+		}
 	}
 
 	public static void GenerateNextLevelSection(){
