@@ -42,7 +42,7 @@ public class GameController : MonoBehaviour {
 	}
 	
 	void OnGUI(){
-		//GUI.TextArea (new Rect (0, 0, 200, 20), string.Format("Coins: {0}", instance.coins));
+		GUI.TextArea (new Rect (0, 0, 200, 20), string.Format("Coins: {0}", instance.coins));
 		if (instance.stopped) {
 			instance.canCollide = GUI.Toggle (new Rect (0, 20, 200, 20), instance.canCollide, "Can Collide?");
 		}

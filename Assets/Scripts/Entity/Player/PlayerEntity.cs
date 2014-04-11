@@ -4,26 +4,35 @@ using System.Collections.Generic;
 
 public class PlayerEntity : MonoBehaviour, IEntity
 {
+	public Animator				anim;
 	public PlayerCollider 		playerCollider;
-	public PlayerFollower		playerFollower;
+	public Transform			followerTransform;
+	public GameObject			playerFollower;
 	public GameObject 			mesh;
+
 	public float 				maxSpeed 		= 10.0f;
 	public float 				explosionForce 	= 50.0f;
 	public float 				jumpStrength 	= 1.0f;
 	public float 				weight 			= 1.0f;
 
-	private int 				currentLane 	= 1;
 	private PlayerLaneTransform targetLane;
+	private A_Powerup			equippedPowerup;
 	private float 				startSpeed;
+	private Vector3 			startOffset;
+
+	private int 				currentLane 	= 1;
 	private bool 				isJumping 		= false;
 	private bool 				isDucking 		= false;
-	private Vector3 			startOffset;
+	private bool				isMagnetized	= false;
 
 	// Use this for initialization
 	void Start ()
 	{
 		this.startSpeed = GameController.GameSpeed;
 		this.startOffset = Vector3.up;
+
+		if (this.playerFollower != null)
+			this.CreateFollower (this.playerFollower);
 	}
 	
 	// Update is called once per frame
@@ -32,7 +41,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		if (this.targetLane != null) {
 			if (!GameController.IsStopped) {
 				this.transform.position = Vector3.Lerp (this.transform.position, this.targetLane.transform.position + this.startOffset, Time.deltaTime * 10.0f);
-				this.transform.rotation = Quaternion.Euler (new Vector3 (0, this.targetLane.transform.rotation.eulerAngles.y, 0));
+				this.transform.rotation = Quaternion.Slerp(this.transform.rotation, Quaternion.Euler (new Vector3 (0, this.targetLane.transform.rotation.eulerAngles.y, 0)), Time.deltaTime * 10);
 				this.mesh.transform.Rotate (new Vector3 (this.maxSpeed * Time.deltaTime * (GameController.GameSpeed / this.startSpeed), 0, 0));
 			}
 		}
@@ -40,7 +49,6 @@ public class PlayerEntity : MonoBehaviour, IEntity
 
 	public void StartMoving(){
 		this.targetLane = LevelController.GetLaneTransform (this.currentLane);
-		//this.SetNextPath (LevelController.GetNextSectionPath ());
 	}
 
 	public void MoveLeft(){
@@ -67,7 +75,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 				this.FallFast();
 			}else{
 				if (!this.isDucking) {
-					this.Duck();
+					StartCoroutine (this.DuckRoutine ());
 				}
 			}
 		}
@@ -76,29 +84,20 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	public void MoveUp(){
 		if (!GameController.IsStopped) {
 			if (!this.isJumping) {
+				if (this.isDucking){
+					this.isDucking = false;
+					this.anim.SetBool ("isDucking", false);
+					StopCoroutine("DuckRoutine");
+				}
 				StartCoroutine (this.JumpRoutine ());
 			}
 		}
 	}
 
-	public void Duck(){
-		Debug.Log ("Ducked");
-	}
-	
-	/*
-	public void SetNextPath(Vector3[] to){
-		LeanTween.moveSpline (this.gameObject, to, 1.0f).setOnComplete (AssignNextSectionPath).setEase(LeanTweenType.linear);
-	}
-
-	private void AssignNextSectionPath(){
-		Debug.Log ("New path");
-		LevelController.GenerateNextLevelSection ();
-		this.SetNextPath (LevelController.GetNextSectionPath ());
-	}
-	*/
 	public void Die(){
 		foreach (Transform t in this.GetComponentsInChildren<Transform>()) {
 			if (t.tag == "Collectable"){
+				t.parent = null;
 				Collider c = (t.GetComponent<BoxCollider>() == null) ? t.gameObject.AddComponent<BoxCollider>() : t.collider;
 				Rigidbody r = (t.GetComponent<Rigidbody>() == null) ? t.gameObject.AddComponent<Rigidbody>() : t.rigidbody;
 				r.isKinematic = false;
@@ -107,13 +106,15 @@ public class PlayerEntity : MonoBehaviour, IEntity
 				r.collider.isTrigger = false;
 			}
 		}
-		//LeanTween.pause (this.gameObject);
 	}
 
 	public void Expand(){
 		this.playerCollider.Expand (0.1f);
 	}
 
+	/* CoRoutines */
+
+	// Performs a jump based on the start y location of the jump. Uses the lane's x and z values;
 	IEnumerator JumpRoutine(){
 		Debug.Log ("StartJump");
 		this.isJumping = true;
@@ -130,13 +131,8 @@ public class PlayerEntity : MonoBehaviour, IEntity
 			this.mesh.transform.position = Vector3.Lerp (this.mesh.transform.position, 
 			                                        new Vector3(this.transform.position.x, startY + this.startOffset.y + curJump, this.transform.position.z), 
 			                                        Time.deltaTime * this.maxSpeed);
-			/*
-			RaycastHit hit;
-			if (Physics.Raycast(this.mesh.transform.position, Vector3.down, out hit, this.playerCollider.radius * 1.05f)){
-				Debug.Log(hit.collider.name);
-				isGrounded = true;
-			}*/
-			isGrounded = (this.mesh.transform.position.y <= (this.playerCollider.radius + this.transform.position.y));
+
+			isGrounded = (this.mesh.transform.position.y <= (this.playerCollider.Radius + this.transform.position.y));
 			yield return new WaitForFixedUpdate();
 		}
 
@@ -147,8 +143,70 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		Debug.Log ("EndJump");
 	}
 
+	// Does the "SquishDown" animation that is attached to the mesh object. Shrinks the collider.
+	IEnumerator DuckRoutine(){
+		Debug.Log ("StartDuck");
+		this.isDucking = true;
+
+		this.anim.SetBool ("isDucking", true);
+
+		while (true) {
+			if (this.anim.GetCurrentAnimatorStateInfo (0).IsName ("SquishDown")) {
+				if (this.anim.GetCurrentAnimatorStateInfo (0).normalizedTime > 0.95f) {
+					break;
+				}
+			}
+			yield return new WaitForEndOfFrame ();
+		}
+
+		this.anim.SetBool ("isDucking", false);
+		this.isDucking = false;
+		
+		Debug.Log ("EndDuck");
+	}
+
+	IEnumerator ExecutePowerup(){
+		float timer = 0.0f;
+
+		this.equippedPowerup.OnInit ();
+
+		while (timer < this.equippedPowerup.Duration) {
+			this.equippedPowerup.OnExecute();
+			yield return new WaitForEndOfFrame();
+			timer += Time.deltaTime;
+
+			Debug.Log(timer);
+		}
+
+		this.equippedPowerup.OnComplete ();
+		this.equippedPowerup = null;
+	}
+
 	public void FallFast(){
 		this.weight *= 10;
+	}
+
+	public void CreateFollower(GameObject prefab){
+		PlayerFollower follower = prefab.GetComponent<PlayerFollower> ();
+		this.playerFollower = GameObject.Instantiate (prefab, this.followerTransform.position, this.followerTransform.rotation) as GameObject;
+		this.playerFollower.GetComponent<PlayerFollower> ().Init (this);
+		this.playerFollower.transform.parent = this.transform;
+	}
+
+	public void AddPowerup(A_Powerup powerup){
+		if (this.equippedPowerup != null) {
+			StopCoroutine("ExecutePowerup");
+			this.equippedPowerup.OnComplete();
+		}
+
+		this.equippedPowerup = null;
+		this.equippedPowerup = powerup;
+		StartCoroutine ("ExecutePowerup");
+	}
+
+	public bool IsMagnetized{
+		get { return this.isMagnetized; }
+		set { this.isMagnetized = value; }
 	}
 }
 

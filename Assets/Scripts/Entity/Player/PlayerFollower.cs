@@ -5,9 +5,12 @@ public class PlayerFollower : MonoBehaviour
 {
 	public MeshRenderer	meshRenderer;
 	public Animator		animator;
-	public float 		closeness = 5.0f;
+	//public float 		closeness = 5.0f;
 	public PlayerEntity target;
 
+	public void Init(PlayerEntity target){
+		this.target = target;
+	}
 	// Update is called once per frame
 	/*void Update ()
 	{
