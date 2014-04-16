@@ -16,18 +16,12 @@ public class PlayerLaneTransform : MonoBehaviour
 	}
 
 	private void AssignNextSectionPath(){
-		//Debug.Log ("New path");
 		this.path++;
-		//LevelController.GenerateNextLevelSection ();
 		this.SetNextPath (LevelController.GetNextSectionPath (this.path, this.lane));
 	}
 
 	public void Stop(){
 		LeanTween.pause (this.gameObject);
-	}
-
-	void OnDrawGizmos(){
-		Gizmos.DrawCube (this.transform.position, Vector3.one);
 	}
 }
 

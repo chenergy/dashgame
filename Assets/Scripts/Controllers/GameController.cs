@@ -42,7 +42,6 @@ public class GameController : MonoBehaviour {
 	}
 	
 	void OnGUI(){
-		GUI.TextArea (new Rect (0, 0, 200, 20), string.Format("Coins: {0}", instance.coins));
 		if (instance.stopped) {
 			instance.canCollide = GUI.Toggle (new Rect (0, 20, 200, 20), instance.canCollide, "Can Collide?");
 		}
@@ -82,6 +81,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	public static void EndGame(){
+		instance.StopAllCoroutines ();
 		LevelController.StopLevel ();
 		instance.activePlayer.Die ();
 		instance.stopped = true;
@@ -90,9 +90,11 @@ public class GameController : MonoBehaviour {
 
 	public static void AddCoins(int num){
 		instance.coins += num;
+		UIController.UpdateCoins (instance.coins);
 
 		if (instance.coins % 50 == 0) {
-			instance.activePlayer.Expand();
+			instance.activePlayer.Expand ();
+			GlobalCameraController.PanOut (new Vector3 (0, 2, -4));
 		}
 	}
 

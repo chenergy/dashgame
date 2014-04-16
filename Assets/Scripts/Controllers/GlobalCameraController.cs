@@ -19,14 +19,8 @@ public class GlobalCameraController : MonoBehaviour
 
 	void LateUpdate(){
 		if (instance.entity != null) {
-			/*instance.transform.position = new Vector3 (entity.playerFollower.transform.TransformPoint (new Vector3 (offset.x, 0, 0)).x, 
-			                                          entity.playerFollower.transform.position.y + offset.y, 
-			                                          entity.playerFollower.transform.TransformPoint (new Vector3 (0, 0, offset.z)).z);
-			                                          */
-			instance.transform.position = entity.playerFollower.transform.TransformPoint (offset)/* + new Vector3 (0, entity.playerFollower.transform.position.y, 0)*/;
-			//if (Mathf.Abs(entity.transform.rotation.eulerAngles.y - instance.transform.rotation.eulerAngles.y) > 0.5f){
-				instance.transform.rotation = Quaternion.Euler (0, entity.transform.rotation.eulerAngles.y, 0);
-			//}
+			instance.transform.position = entity.playerFollower.transform.TransformPoint (offset);
+			instance.transform.rotation = Quaternion.Euler (0, entity.transform.rotation.eulerAngles.y, 0);
 		}
 	}
 
@@ -34,7 +28,18 @@ public class GlobalCameraController : MonoBehaviour
 	public static void FocusOnPlayer(PlayerEntity entity){
 		instance.entity = entity;
 		instance.transform.rotation = Quaternion.identity;
-		//instance.transform.parent = entity.transform;
+	}
+
+	public static void PanOut (Vector3 amount){
+		instance.StartCoroutine (instance.PanOutRoutine (amount));
+	}
+
+	IEnumerator PanOutRoutine(Vector3 amount){
+		Vector3 target = amount + offset;
+		while ((offset - target).sqrMagnitude > 0.1f) {
+			offset += Time.deltaTime * (target - offset).normalized;
+			yield return new WaitForEndOfFrame();
+		}
 	}
 }
 

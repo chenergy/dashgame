@@ -8,6 +8,7 @@ public class CollectableMagnetPowerup : A_CollectableItem
 			A_Powerup magnet = new PowerupMagnet( 5.0f );
 
 			GameController.ActivePlayer.AddPowerup(magnet);
+			base.RewardPlayer();
 		}
 	}
 }

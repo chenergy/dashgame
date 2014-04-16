@@ -8,7 +8,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	public PlayerCollider 		playerCollider;
 	public Transform			followerTransform;
 	public GameObject			playerFollower;
-	public GameObject 			mesh;
+	public GameObject 			gobj;
 
 	public float 				maxSpeed 		= 10.0f;
 	public float 				explosionForce 	= 50.0f;
@@ -31,8 +31,9 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		this.startSpeed = GameController.GameSpeed;
 		this.startOffset = Vector3.up;
 
-		if (this.playerFollower != null)
+		if (this.playerFollower != null) {
 			this.CreateFollower (this.playerFollower);
+		}
 	}
 	
 	// Update is called once per frame
@@ -40,9 +41,15 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	{
 		if (this.targetLane != null) {
 			if (!GameController.IsStopped) {
-				this.transform.position = Vector3.Lerp (this.transform.position, this.targetLane.transform.position + this.startOffset, Time.deltaTime * 10.0f);
-				this.transform.rotation = Quaternion.Slerp(this.transform.rotation, Quaternion.Euler (new Vector3 (0, this.targetLane.transform.rotation.eulerAngles.y, 0)), Time.deltaTime * 10);
-				this.mesh.transform.Rotate (new Vector3 (this.maxSpeed * Time.deltaTime * (GameController.GameSpeed / this.startSpeed), 0, 0));
+				//this.transform.position = Vector3.Lerp (this.transform.position, this.targetLane.transform.position + this.startOffset, Time.deltaTime * 10.0f);
+				this.transform.position = Vector3.Lerp (this.transform.position, this.targetLane.transform.position + new Vector3 (0, this.playerCollider.Radius, 0), Time.deltaTime * 10.0f);
+				if (Quaternion.Angle(this.transform.rotation, this.targetLane.transform.rotation) > 1f){
+					this.transform.rotation = Quaternion.Lerp (this.transform.rotation, Quaternion.Euler (new Vector3 (0, this.targetLane.transform.rotation.eulerAngles.y, 0)), Time.deltaTime * 10);
+				}
+
+				this.gobj.transform.Rotate (new Vector3 (this.maxSpeed * Time.deltaTime * (GameController.GameSpeed / this.startSpeed), 0, 0));
+
+				//this.followerTransform.parent = this.targetLane.transform;
 			}
 		}
 	}
@@ -109,45 +116,52 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	}
 
 	public void Expand(){
-		this.playerCollider.Expand (0.1f);
+		//this.followerTransform.localPosition += new Vector3 (0, -(this.playerCollider.Radius * 0.5f), -(this.playerCollider.Radius * 0.5f));
+		this.playerCollider.Expand (1.5f);
 	}
 
 	/* CoRoutines */
 
 	// Performs a jump based on the start y location of the jump. Uses the lane's x and z values;
 	IEnumerator JumpRoutine(){
-		Debug.Log ("StartJump");
+		//Debug.Log ("StartJump");
 		this.isJumping = true;
 
-		bool isGrounded = false;
-		float startY = this.mesh.transform.position.y;
-		float yJump = this.jumpStrength;
-		float curJump = 0.0f;
-		float startWeight = this.weight;
+		bool 	isGrounded 		= false;
+		float 	startY 			= this.gobj.transform.position.y;
+		float 	yJump 			= this.jumpStrength;
+		float 	curJump 		= 0.0f;
+		float 	startWeight 	= this.weight;
+
+		int 	bufferFrames 	= 3;
+		int 	curFrame 		= 0;
 
 		while (!isGrounded) {
 			yJump += (Physics.gravity.y * Time.deltaTime * this.weight);
 			curJump += yJump;
-			this.mesh.transform.position = Vector3.Lerp (this.mesh.transform.position, 
+			this.gobj.transform.position = Vector3.Lerp (this.gobj.transform.position, 
 			                                        new Vector3(this.transform.position.x, startY + this.startOffset.y + curJump, this.transform.position.z), 
 			                                        Time.deltaTime * this.maxSpeed);
 
-			isGrounded = (this.mesh.transform.position.y <= (this.playerCollider.Radius + this.transform.position.y));
+			if (curFrame > bufferFrames)
+				isGrounded = (this.gobj.transform.position.y <= (this.playerCollider.Radius + this.transform.position.y));
+
 			yield return new WaitForFixedUpdate();
+			curFrame++;
 		}
 
 		this.weight = startWeight;
 		this.isJumping = false;
-		this.mesh.transform.localPosition = Vector3.zero;
+		this.gobj.transform.localPosition = Vector3.zero;
 
-		Debug.Log ("EndJump");
+		//Debug.Log ("EndJump");
 	}
 
 	// Does the "SquishDown" animation that is attached to the mesh object. Shrinks the collider.
 	IEnumerator DuckRoutine(){
-		Debug.Log ("StartDuck");
+		//Debug.Log ("StartDuck");
 		this.isDucking = true;
-
+		this.playerCollider.ColliderRadius = 0.5f;
 		this.anim.SetBool ("isDucking", true);
 
 		while (true) {
@@ -161,8 +175,8 @@ public class PlayerEntity : MonoBehaviour, IEntity
 
 		this.anim.SetBool ("isDucking", false);
 		this.isDucking = false;
-		
-		Debug.Log ("EndDuck");
+		this.playerCollider.ColliderRadius = 0.75f;
+		//Debug.Log ("EndDuck");
 	}
 
 	IEnumerator ExecutePowerup(){
@@ -175,7 +189,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 			yield return new WaitForEndOfFrame();
 			timer += Time.deltaTime;
 
-			Debug.Log(timer);
+			//Debug.Log(timer);
 		}
 
 		this.equippedPowerup.OnComplete ();
@@ -189,8 +203,8 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	public void CreateFollower(GameObject prefab){
 		PlayerFollower follower = prefab.GetComponent<PlayerFollower> ();
 		this.playerFollower = GameObject.Instantiate (prefab, this.followerTransform.position, this.followerTransform.rotation) as GameObject;
-		this.playerFollower.GetComponent<PlayerFollower> ().Init (this);
-		this.playerFollower.transform.parent = this.transform;
+		this.playerFollower.GetComponent<PlayerFollower> ().Init (this.followerTransform);
+		//this.playerFollower.transform.parent = this.transform;
 	}
 
 	public void AddPowerup(A_Powerup powerup){

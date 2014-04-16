@@ -3,46 +3,43 @@ using System.Collections;
 
 public abstract class A_CollectableItem : MonoBehaviour, I_Collectable
 {
+	public string		name;
 	public GameObject 	mesh;
+	public GameObject	visualPrefab;
 	public bool			canAttach;
 	public bool			canMagnetize;
+	public int 			minSize = 0;
 
 	private float 		magnetizeSpeed 		= 1.0f;
 	private bool 		alreadyMagnetized 	= false;
-	
-	void Start(){
-
-	}
 
 	void Update(){
-		if (!this.alreadyMagnetized) {
-			if (GameController.ActivePlayer != null) {
-				if (GameController.ActivePlayer.IsMagnetized && this.canMagnetize) {
-					if ((this.transform.position - GameController.ActivePlayer.transform.position).sqrMagnitude < 100){
-						this.alreadyMagnetized = true;
-						this.Magnetize ();
+		if (this.canMagnetize) {
+			if (!this.alreadyMagnetized) {
+				if (GameController.ActivePlayer != null) {
+					if (GameController.ActivePlayer.IsMagnetized) {
+						if ((this.transform.position - GameController.ActivePlayer.transform.position).sqrMagnitude < 100) {
+							this.alreadyMagnetized = true;
+							this.Magnetize ();
+						}
 					}
 				}
 			}
 		}
 	}
 
-	void OnTriggerEnter(Collider other){
+	protected virtual void OnTriggerEnter(Collider other){
 		if (other.tag == "Ball") {
-			this.RewardPlayer ();
+			PlayerCollider pc = other.GetComponent<PlayerCollider> ();
 
-			if (this.canAttach) {
-				Vector3 rand = Random.insideUnitSphere;
-				this.mesh.transform.position = other.transform.position + rand * (other as SphereCollider).radius;
-				this.mesh.transform.parent = other.transform;
-				this.mesh.transform.localScale = new Vector3 (0.25f, 0.25f, 0.25f);
-			
-				if (this.mesh.GetComponent<Spin> () != null) {
-					this.mesh.GetComponent<Spin> ().enabled = false;
+			if (this.minSize <= pc.NumExpansions) {
+				if (this.canAttach) {
+					pc.AddCollectable (this.mesh);
 				}
+
+				this.RewardPlayer ();
+				GameObject.Destroy (this.gameObject);
 			}
-			
-			GameObject.Destroy (this.gameObject);
 		}
 	}
 
@@ -57,13 +54,15 @@ public abstract class A_CollectableItem : MonoBehaviour, I_Collectable
 
 		while (t < 1) {
 			t += Time.deltaTime * this.magnetizeSpeed;
-			this.transform.position = Vector3.Lerp (this.transform.position, GameController.ActivePlayer.transform.position, t);
+			this.transform.position = Vector3.Lerp (this.transform.position, GameController.ActivePlayer.gobj.transform.position, t);
 			yield return new WaitForEndOfFrame ();
 		}
 
 		this.RewardPlayer ();
 	}
 
-	public abstract void RewardPlayer();
+	public virtual void RewardPlayer(){
+		UIController.UpdateItem (this);
+	}
 }
 
