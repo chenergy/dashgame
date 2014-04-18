@@ -18,6 +18,7 @@ public class GameController : MonoBehaviour {
 	void Awake(){
 		if (GameController.instance == null) {
 			GameController.instance = this;
+			GameObject.DontDestroyOnLoad(this.gameObject);
 		} else {
 			GameObject.Destroy(this.gameObject);
 		}
@@ -108,6 +109,10 @@ public class GameController : MonoBehaviour {
 
 	public static float GameSpeed{
 		get { return instance.speed; }
+	}
+
+	public static float MaxSpeed{
+		get { return instance.maxSpeed; }
 	}
 
 	public static PlayerEntity ActivePlayer{

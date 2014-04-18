@@ -78,11 +78,12 @@ public class InputController : MonoBehaviour{
 		}
 	}
 
+	/*
 	void OnGUI(){
-		/*GUI.TextArea (new Rect (0, 0, 200, 20), "StartPos: " + instance.startTouchPos.ToString ());
+		GUI.TextArea (new Rect (0, 0, 200, 20), "StartPos: " + instance.startTouchPos.ToString ());
 		GUI.TextArea (new Rect (0, 30, 200, 20), "CurPos: " + instance.curTouchPos.ToString ());
 		GUI.TextArea (new Rect (0, 60, 200, 20), "Coins: " + GameController.Coins.ToString ());
-		*/
 	}
+	*/
 }
 

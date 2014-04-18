@@ -5,8 +5,9 @@ public class GlobalCameraController : MonoBehaviour
 {
 	private static GlobalCameraController instance = null;
 
-	public Vector3 offset;
-	private PlayerEntity entity;
+	public Camera			skyboxCamera;
+	public Vector3 			offset;
+	private PlayerEntity 	entity;
 
 	void Awake(){
 		if (GlobalCameraController.instance == null) {
@@ -22,6 +23,8 @@ public class GlobalCameraController : MonoBehaviour
 			instance.transform.position = entity.playerFollower.transform.TransformPoint (offset);
 			instance.transform.rotation = Quaternion.Euler (0, entity.transform.rotation.eulerAngles.y, 0);
 		}
+
+		skyboxCamera.transform.rotation = this.transform.rotation;
 	}
 
 

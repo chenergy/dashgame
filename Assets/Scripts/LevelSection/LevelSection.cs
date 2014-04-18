@@ -3,10 +3,16 @@ using System.Collections;
 
 public class LevelSection : MonoBehaviour, I_Sectionable
 {
-	public Transform endpointLocator;
-	public Transform[] leftPath;
-	public Transform[] centerPath;
-	public Transform[] rightPath;
+	public float 		speed = 20.0f;
+	public Transform 	endpointLocator;
+	public Transform[] 	leftPath;
+	public Transform[] 	centerPath;
+	public Transform[] 	rightPath;
+
+	[HideInInspector]
+	public Vector3[][] paths;
+
+	private bool 		hasTraversed = false;
 
 	void Start(){
 		Vector3[] leftPoints = new Vector3[leftPath.Length];
@@ -23,23 +29,32 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 			rightPoints[i] = rightPath[i].position;
 		}
 
-		LevelController.AddSectionPath (leftPoints, centerPoints, rightPoints);
-	}
+		this.paths = new Vector3[][] { leftPoints, centerPoints, rightPoints };
 
+		//LevelController.AddSectionPath (leftPoints, centerPoints, rightPoints);
+		LevelController.AddSectionPath (this);
+	}
+	/*
 	void Update(){
-		if (this.transform.InverseTransformDirection (this.transform.position - GameController.ActivePlayer.transform.position).z < -20) {
-			LevelController.GenerateNextLevelSection();
-			GameObject.Destroy(this.gameObject);
+		if (this.hasTraversed) {
+			if (this.transform.InverseTransformDirection (this.transform.position - GameController.ActivePlayer.transform.position).z < -60) {
+				LevelController.GenerateNextLevelSection ();
+				GameObject.Destroy (this.gameObject);
+			}
 		}
 	}
-
-	void OnDrawGizmos(){
+	*/
+	void OnDrawGizmosSelected(){
 		Transform[][] paths = new Transform[][] { this.leftPath, this.centerPath, this.rightPath };
 		foreach (Transform[] thispath in paths) {
 			for (int i = 0; i < thispath.Length - 1; i++) {
 				Gizmos.DrawLine (thispath [i].position, thispath [i + 1].position);
 			}
 		}
+	}
+
+	public void SetAsTraversed(){
+		this.hasTraversed = true;
 	}
 }
 
