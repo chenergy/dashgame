@@ -6,6 +6,7 @@ public class GameController : MonoBehaviour {
 
 	public GameObject 		testPlayer;
 	public PlayerEntity 	activePlayer;
+	public int 				expansionLimit 	= 50;
 	public float 			speed 			= 20.0f;
 	public float			speedIncrement	= 1.0f;
 	public float 			maxSpeed 		= 75.0f;
@@ -93,7 +94,7 @@ public class GameController : MonoBehaviour {
 		instance.coins += num;
 		UIController.UpdateCoins (instance.coins);
 
-		if (instance.coins % 50 == 0) {
+		if (instance.coins % instance.expansionLimit == 0) {
 			instance.activePlayer.Expand ();
 			GlobalCameraController.PanOut (new Vector3 (0, 2, -4));
 		}

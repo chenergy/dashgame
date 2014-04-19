@@ -4,77 +4,63 @@ using System.Collections.Generic;
 
 public class LevelController : MonoBehaviour
 {
-	private static LevelController instance = null;
+	[System.Serializable]
+	public class SectionContainer
+	{
+		public GameObject[] sectionPrefabs;
+	}
 
-	public GameObject[] 		sectionPrefabList;
+	public int 					preLoadedSections = 15;
 	public Transform 			nextSectionSpawnLocation;
 	public GameObject			baseLaneTransform;
-	public int 					preLoadedSections = 15;
+	public SectionContainer[]	sectionPrefabsByExpLevel;
+	public GameObject[]			transitionSectionsByExpLevel;
 
-	private int 				numSections;
 	private GameObject 			parentLevel;
-	//private List<Vector3[][]> 	paths;
-	private List<LevelSection>	sections;
-	private int 				currentSection;
+	private LevelSection[] 		sections;
+	private int 				lastElementInSections = 0;
 	private int 				currentLane = 1;
+	private int					expansionLevel = 0;
 
 	private PlayerLaneTransform	leftTransform;
 	private PlayerLaneTransform	centerTransform;
 	private PlayerLaneTransform	rightTransform;
 	private PlayerLaneTransform[] laneTransforms;
 
+	private static LevelController instance = null;
+
 	void Awake(){
 		if (LevelController.instance == null) {
 			LevelController.instance = this;
 
-			instance.numSections = sectionPrefabList.Length;
+			// Create Empty parent level
 			instance.parentLevel = new GameObject();
 
-			// Temporary auto-start level generation
-			//instance.paths = new List<Vector3[][]>();
-			instance.sections = new List<LevelSection>();
+			// Setup total sections based on # to preload + transition sections
+			instance.sections = new LevelSection[instance.preLoadedSections + instance.transitionSectionsByExpLevel.Length];
+
+			// Create preloaded sections
 			for(int i = 0; i < instance.preLoadedSections; i++){
-				LevelController.GenerateNextLevelSection();
+				LevelController.GenerateRandomLevelSection( false );
 			}
 		} else {
 			GameObject.Destroy(this.gameObject);
 		}
 	}
 
-	void Start(){
-		// Center
-		//GameController.ActivePlayer.SetNextPath (instance.paths [0][1]);
-	}
-
-	/*
-	void Update(){
-		if (!GameController.IsStopped)
-			parentLevel.transform.Translate (Vector3.back * GameController.GameSpeed * Time.deltaTime);
-	}
-	*/
-
 	public static void StartLevel(){
-		/*
-		instance.leftTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.paths [0] [0] [1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
-		instance.centerTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.paths [0] [1] [1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
-		instance.rightTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.paths [0] [2] [1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
-		*/
+		// Create each transform for the three lanes
 		instance.leftTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.sections [0].paths[0][1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
 		instance.centerTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.sections [0].paths[1][1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
 		instance.rightTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.sections [0].paths[2][1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
 
 		instance.laneTransforms = new PlayerLaneTransform[] { instance.leftTransform, instance.centerTransform, instance.rightTransform };
 
-		/*
-		instance.leftTransform.SetNextPath (instance.paths [0] [0]);
-		instance.centerTransform.SetNextPath (instance.paths [0] [1]);
-		instance.rightTransform.SetNextPath (instance.paths [0] [2]);
-		*/
-
 		instance.leftTransform.Init (0);
 		instance.centerTransform.Init (1);
 		instance.rightTransform.Init (2);
 
+		// Assign the transforms to the designated paths
 		instance.leftTransform.SetNextPath (instance.sections [0]);
 		instance.centerTransform.SetNextPath (instance.sections [0]);
 		instance.rightTransform.SetNextPath (instance.sections [0]);
@@ -82,22 +68,40 @@ public class LevelController : MonoBehaviour
 		GameController.ActivePlayer.StartMoving ();
 	}
 
+	// Stop each transform, which stops the player following it
 	public static void StopLevel(){
 		instance.leftTransform.Stop ();
 		instance.centerTransform.Stop ();
 		instance.rightTransform.Stop ();
 
+		// Turn on all ground colliders
 		GameObject[] grounds = GameObject.FindGameObjectsWithTag("Ground");
 		foreach (GameObject g in grounds) {
 			g.GetComponent<MeshCollider>().enabled = true;
 		}
 	}
 
-	public static void GenerateNextLevelSection(){
-		// Find the next section to be loaded randomly (temporary)
-		int next = Random.Range (0, instance.numSections);
-		GameObject nextSection = instance.sectionPrefabList [next];
+	// Add a random LevelSection to the path
+	public static void GenerateRandomLevelSection( bool destroyFirst = true ){
+		// Find the next section to be loaded randomly
+		int num = instance.sectionPrefabsByExpLevel [instance.expansionLevel].sectionPrefabs.Length;
+		int next = Random.Range (0, num);
 
+		if (num > 0) {
+			GameObject nextSection = instance.sectionPrefabsByExpLevel [instance.expansionLevel].sectionPrefabs [next];
+			instance.CreateSectionAndAddToPath (nextSection, destroyFirst);
+		}
+	}
+
+	// Add a Transition type LevelSection to the end of path
+	public static void GenerateTransitionSection(){
+		if (instance.expansionLevel < instance.transitionSectionsByExpLevel.Length) {
+			instance.CreateSectionAndAddToPath (instance.transitionSectionsByExpLevel [instance.expansionLevel], false);
+		}
+	}
+
+	// Create a LevelSection GameObject at the correct endpoint location
+	private void CreateSectionAndAddToPath ( GameObject nextSection, bool destroyFirst ){
 		// Instantiate the next section and update the next location to spawn
 		if (instance.nextSectionSpawnLocation == null) {
 			nextSection = GameObject.Instantiate (nextSection, 
@@ -105,48 +109,68 @@ public class LevelController : MonoBehaviour
 			                                      Quaternion.identity) as GameObject;
 		} else {
 			nextSection = GameObject.Instantiate (nextSection, 
-		                        instance.nextSectionSpawnLocation.position, 
-		                        instance.nextSectionSpawnLocation.rotation) as GameObject;
-
+			                                      instance.nextSectionSpawnLocation.position, 
+			                                      instance.nextSectionSpawnLocation.rotation) as GameObject;
+			
 		}
 
+		// Set the next spawn location transform
 		instance.nextSectionSpawnLocation = nextSection.GetComponent<LevelSection> ().endpointLocator;
 		nextSection.transform.parent = instance.parentLevel.transform;
+
+		LevelSection ls = nextSection.GetComponent<LevelSection> ();
+		instance.AddSectionPath (ls, destroyFirst );
 	}
 
-	/*
-	public static void AddSectionPath( Vector3[] left, Vector3[] center, Vector3[] right ){
-		instance.paths.Add (new Vector3[][] { left, center, right });
-	}
-	*/
-
-	public static void AddSectionPath( LevelSection section ){
-		instance.sections.Add (section);
+	private void AddSectionPath( LevelSection section, bool destroyFirst ){
+		if (instance.lastElementInSections < instance.sections.Length) {
+			instance.AddSectionToArray( section, destroyFirst );
+		}
 	}
 
-	/*
-	public static Vector3[] GetNextSectionPath(int path, int lane){
-		return instance.paths [path][lane];
-	}
-	*/
+	private void AddSectionToArray( LevelSection section, bool destroyFirst ){
+		//Debug.Log (instance.lastElementInSections);
+		if (destroyFirst) {
+			instance.StartCoroutine("DelayDestroySection", instance.sections [0]);
+			//GameObject.Destroy (instance.sections [0].gameObject);
+			//instance.sections [0] = null;
+			
+			for (int i = 0; i < instance.lastElementInSections - 1; i++) {
+				instance.sections [i] = instance.sections [i + 1];
+			}
+		} else {
+			instance.lastElementInSections++;
+		}
 
-	public static LevelSection GetNextSection(int path){
-		//return instance.paths [path][lane];
-		return instance.sections [path];
+		int element = Mathf.Max (0, instance.lastElementInSections - 1);
+		instance.sections[element] = section;
+
+		//Debug.Break ();
+	}
+
+
+	public static LevelSection GetNextSection(){
+		//return instance.sections [path];
+		return instance.sections [0]; // Which section to get?
 	}
 
 	public static PlayerLaneTransform GetLaneTransform(int lane){
 		return instance.laneTransforms[lane];
 	}
 
+	public static void UpdateExpansionLevel( int level ){
+		instance.expansionLevel = level;
+	}
+
+	/*
 	public static void DestroyLastSection(){
 		instance.StartCoroutine("DelayDestroyLastSection", instance.sections [instance.currentSection]);
 	}
-
-	IEnumerator DelayDestroyLastSection(LevelSection section){
+	*/
+	IEnumerator DelayDestroySection(LevelSection section){
 		yield return new WaitForSeconds(1.0f);
 
-		instance.currentSection++;
+		//instance.currentSection++;
 		//instance.sections.RemoveAt (0);
 		GameObject.Destroy (section.gameObject);
 	}

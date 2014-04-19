@@ -10,7 +10,7 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 	public Transform[] 	rightPath;
 
 	[HideInInspector]
-	public Vector3[][] paths;
+	public Vector3[][] 	paths;
 
 	private bool 		hasTraversed = false;
 
@@ -32,7 +32,7 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 		this.paths = new Vector3[][] { leftPoints, centerPoints, rightPoints };
 
 		//LevelController.AddSectionPath (leftPoints, centerPoints, rightPoints);
-		LevelController.AddSectionPath (this);
+		//LevelController.AddSectionPath (this);
 	}
 	/*
 	void Update(){

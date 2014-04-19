@@ -10,7 +10,7 @@ public class PlayerCollider : MonoBehaviour
 
 	private SphereCollider 		sphereCollider;
 	private List<GameObject> 	collected;
-	private int 				numExpansions = 0;
+	private int 				expansionLevel = 0;
 
 	void Start(){
 		this.collected = new List<GameObject> ();
@@ -18,7 +18,11 @@ public class PlayerCollider : MonoBehaviour
 	}
 
 	public void Expand(float amount){
-		this.numExpansions++;
+		LevelController.GenerateTransitionSection ();
+
+		this.expansionLevel++;
+		LevelController.UpdateExpansionLevel (this.expansionLevel);
+
 		StartCoroutine(this.ExpandRoutine(amount));
 	}
 
@@ -32,7 +36,7 @@ public class PlayerCollider : MonoBehaviour
 	}
 
 	public int NumExpansions {
-		get{ return this.numExpansions; }
+		get{ return this.expansionLevel; }
 	}
 
 	IEnumerator ExpandRoutine(float amount){
