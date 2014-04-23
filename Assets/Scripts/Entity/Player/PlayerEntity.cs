@@ -115,7 +115,10 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	}
 
 	public void Expand(){
-		this.playerCollider.Expand (1.5f);
+		// Create the transition section
+		LevelController.GenerateTransitionSection ();
+
+		this.playerCollider.Expand (2.5f);
 	}
 
 	/* CoRoutines */
