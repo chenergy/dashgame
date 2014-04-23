@@ -25,7 +25,7 @@ public class UIController : MonoBehaviour {
 		}
 	}
 
-	public static void UpdateCoins(int num){
+	public static void UpdatePoints(int num){
 		instance.coinNumLabel.text = num.ToString();
 	}
 

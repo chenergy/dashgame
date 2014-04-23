@@ -43,7 +43,6 @@ public class PlayerCollider : MonoBehaviour
 		Vector3 targetSize = this.mesh.transform.localScale + (Vector3.one * amount);
 		float diff = (targetSize.x - this.mesh.transform.localScale.x) * 0.5f;
 		Vector3 followerTargetPosition = new Vector3 (0, this.followerTranform.localPosition.y - diff, this.followerTranform.localPosition.z - diff);
-		//Vector3 followerTargetPosition = (this.followerTranform.position - this.mesh.transform.position).normalized * (this.Radius + amount);
 
 		while ((this.mesh.transform.localScale - targetSize).sqrMagnitude > 0.1f) {
 			this.mesh.transform.localScale = Vector3.Lerp(this.mesh.transform.localScale, targetSize, Time.deltaTime * this.expansionSpeed);
@@ -63,9 +62,9 @@ public class PlayerCollider : MonoBehaviour
 			collectable.transform.position = this.transform.position + rand * this.Radius;
 			collectable.transform.parent = this.transform.parent;
 			collectable.transform.localScale = new Vector3 (0.5f, 0.5f, 0.5f);
-			
-			if (collectable.GetComponent<Spin> () != null) {
-				collectable.GetComponent<Spin> ().enabled = false;
+
+			foreach(Spin s in collectable.GetComponentsInChildren<Spin>()){
+				s.enabled = false;
 			}
 		}
 	}

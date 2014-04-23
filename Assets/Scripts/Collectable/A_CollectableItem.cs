@@ -8,7 +8,8 @@ public abstract class A_CollectableItem : MonoBehaviour, I_Collectable
 	public GameObject	visualPrefab;
 	public bool			canAttach;
 	public bool			canMagnetize;
-	public int 			minSize = 0;
+	public int 			minSizeForPickup 	= 0;
+	public int			points 				= 1;
 
 	private float 		magnetizeSpeed 		= 1.0f;
 	private bool 		alreadyMagnetized 	= false;
@@ -32,7 +33,7 @@ public abstract class A_CollectableItem : MonoBehaviour, I_Collectable
 		if (other.tag == "Ball") {
 			PlayerCollider pc = other.GetComponent<PlayerCollider> ();
 
-			if (this.minSize <= pc.NumExpansions) {
+			if (this.minSizeForPickup <= pc.NumExpansions) {
 				if (this.canAttach) {
 					pc.AddCollectable (this.mesh);
 				}

@@ -3,11 +3,21 @@ using System.Collections;
 
 public class LevelSection : MonoBehaviour, I_Sectionable
 {
-	public float 		speed = 20.0f;
-	public Transform 	endpointLocator;
-	public Transform[] 	leftPath;
-	public Transform[] 	centerPath;
-	public Transform[] 	rightPath;
+	[System.Serializable]
+	public class SpawnableObjects{
+		[Range(0, 1.0f)]
+		public float		spawnChance = 1.0f;
+		public Transform[] 	transforms;
+		public GameObject[]	spawnables;
+	}
+
+	public float 			speed = 20.0f;
+	public Transform 		endpointLocator;
+	public Transform[] 		leftPath;
+	public Transform[] 		centerPath;
+	public Transform[] 		rightPath;
+	public SpawnableObjects	collectables;
+	public SpawnableObjects	obstacles;
 
 	[HideInInspector]
 	public Vector3[][] 	paths;
@@ -31,19 +41,10 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 
 		this.paths = new Vector3[][] { leftPoints, centerPoints, rightPoints };
 
-		//LevelController.AddSectionPath (leftPoints, centerPoints, rightPoints);
-		//LevelController.AddSectionPath (this);
+		this.Spawn (this.collectables);
+		this.Spawn (this.obstacles);
 	}
-	/*
-	void Update(){
-		if (this.hasTraversed) {
-			if (this.transform.InverseTransformDirection (this.transform.position - GameController.ActivePlayer.transform.position).z < -60) {
-				LevelController.GenerateNextLevelSection ();
-				GameObject.Destroy (this.gameObject);
-			}
-		}
-	}
-	*/
+
 	void OnDrawGizmosSelected(){
 		Transform[][] paths = new Transform[][] { this.leftPath, this.centerPath, this.rightPath };
 		foreach (Transform[] thispath in paths) {
@@ -55,6 +56,24 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 
 	public void SetAsTraversed(){
 		this.hasTraversed = true;
+	}
+
+	// Spawn from each spawnables
+	private void Spawn( SpawnableObjects objs ){
+		// Anything to collect?
+		if (objs.spawnables.Length > 0) {
+			// Will create collectable?
+			if (Random.Range (0.0f, 1.0f) <= objs.spawnChance) {
+				// Random collectable
+				int rand = Random.Range (0, objs.spawnables.Length);
+				
+				if (objs.spawnables [rand] != null) {
+					foreach (Transform t in objs.transforms) {
+						(GameObject.Instantiate (objs.spawnables [rand], t.position, t.rotation) as GameObject).transform.parent = this.transform;
+					}
+				}
+			}
+		}
 	}
 }
 

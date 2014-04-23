@@ -6,12 +6,12 @@ public class GameController : MonoBehaviour {
 
 	public GameObject 		testPlayer;
 	public PlayerEntity 	activePlayer;
-	public int 				expansionLimit 	= 50;
+	//public int 				expansionLimit 	= 50;
 	public float 			speed 			= 20.0f;
 	public float			speedIncrement	= 1.0f;
 	public float 			maxSpeed 		= 75.0f;
 
-	private int 			coins 			= 0;
+	//private int 			coins 			= 0;
 	private bool 			stopped 		= true;
 	private bool 			gameOver 		= false;
 	private bool			canCollide 		= true;
@@ -90,19 +90,15 @@ public class GameController : MonoBehaviour {
 		instance.gameOver = true;
 	}
 
-	public static void AddCoins(int num){
-		instance.coins += num;
-		UIController.UpdateCoins (instance.coins);
-
-		if (instance.coins % instance.expansionLimit == 0) {
-			instance.activePlayer.Expand ();
-			GlobalCameraController.PanOut (new Vector3 (0, 2, -4));
-		}
+	public static void AddPoints(int num){
+		//instance.coins += num;
+		instance.activePlayer.AddPoints (num);
+		UIController.UpdatePoints (instance.activePlayer.Points);
 	}
 
-	public static int Coins{
+	/*public static int Coins{
 		get{ return instance.coins; }
-	}
+	}*/
 
 	public static bool IsStopped{
 		get { return instance.stopped; }

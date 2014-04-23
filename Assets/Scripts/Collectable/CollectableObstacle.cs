@@ -8,7 +8,7 @@ public class CollectableObstacle : A_CollectableItem, I_Obstacle
 			if (other.tag == "Ball") {
 				PlayerCollider pc = other.GetComponent<PlayerCollider> ();
 
-				if (this.minSize > pc.NumExpansions) {
+				if (this.minSizeForPickup > pc.NumExpansions) {
 					this.AffectPlayer ();
 				} else {
 					base.OnTriggerEnter (other);
@@ -22,7 +22,7 @@ public class CollectableObstacle : A_CollectableItem, I_Obstacle
 	}
 
 	public override void RewardPlayer(){
-		GameController.AddCoins (1);
+		GameController.AddPoints (1);
 		base.RewardPlayer ();
 	}
 }

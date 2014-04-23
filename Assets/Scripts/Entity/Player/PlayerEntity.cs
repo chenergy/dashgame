@@ -14,6 +14,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	public float 				explosionForce 	= 50.0f;
 	public float 				jumpStrength 	= 1.0f;
 	public float 				weight 			= 1.0f;
+	public int					expansionLimit	= 50;
 
 	private PlayerLaneTransform targetLane;
 	private A_Powerup			equippedPowerup;
@@ -21,6 +22,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	private Vector3 			startOffset;
 
 	private int 				currentLane 	= 1;
+	private int					points 			= 0;
 	private bool 				isJumping 		= false;
 	private bool 				isDucking 		= false;
 	private bool				isMagnetized	= false;
@@ -41,15 +43,12 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	{
 		if (this.targetLane != null) {
 			if (!GameController.IsStopped) {
-				//this.transform.position = Vector3.Lerp (this.transform.position, this.targetLane.transform.position + this.startOffset, Time.deltaTime * 10.0f);
 				this.transform.position = Vector3.Lerp (this.transform.position, this.targetLane.transform.position + new Vector3 (0, this.playerCollider.Radius, 0), Time.deltaTime * 10.0f);
 				if (Quaternion.Angle(this.transform.rotation, this.targetLane.transform.rotation) > 1f){
 					this.transform.rotation = Quaternion.Lerp (this.transform.rotation, Quaternion.Euler (new Vector3 (0, this.targetLane.transform.rotation.eulerAngles.y, 0)), Time.deltaTime * 10);
 				}
 
 				this.gobj.transform.Rotate (new Vector3 (this.maxSpeed * Time.deltaTime * (GameController.GameSpeed / this.startSpeed), 0, 0));
-
-				//this.followerTransform.parent = this.targetLane.transform;
 			}
 		}
 	}
@@ -116,7 +115,6 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	}
 
 	public void Expand(){
-		//this.followerTransform.localPosition += new Vector3 (0, -(this.playerCollider.Radius * 0.5f), -(this.playerCollider.Radius * 0.5f));
 		this.playerCollider.Expand (1.5f);
 	}
 
@@ -124,7 +122,6 @@ public class PlayerEntity : MonoBehaviour, IEntity
 
 	// Performs a jump based on the start y location of the jump. Uses the lane's x and z values;
 	IEnumerator JumpRoutine(){
-		//Debug.Log ("StartJump");
 		this.isJumping = true;
 
 		bool 	isGrounded 		= false;
@@ -153,13 +150,10 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		this.weight = startWeight;
 		this.isJumping = false;
 		this.gobj.transform.localPosition = Vector3.zero;
-
-		//Debug.Log ("EndJump");
 	}
 
 	// Does the "SquishDown" animation that is attached to the mesh object. Shrinks the collider.
 	IEnumerator DuckRoutine(){
-		//Debug.Log ("StartDuck");
 		this.isDucking = true;
 		this.playerCollider.ColliderRadius = 0.5f;
 		this.anim.SetBool ("isDucking", true);
@@ -176,7 +170,6 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		this.anim.SetBool ("isDucking", false);
 		this.isDucking = false;
 		this.playerCollider.ColliderRadius = 0.75f;
-		//Debug.Log ("EndDuck");
 	}
 
 	IEnumerator ExecutePowerup(){
@@ -188,8 +181,6 @@ public class PlayerEntity : MonoBehaviour, IEntity
 			this.equippedPowerup.OnExecute();
 			yield return new WaitForEndOfFrame();
 			timer += Time.deltaTime;
-
-			//Debug.Log(timer);
 		}
 
 		this.equippedPowerup.OnComplete ();
@@ -204,7 +195,6 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		PlayerFollower follower = prefab.GetComponent<PlayerFollower> ();
 		this.playerFollower = GameObject.Instantiate (prefab, this.followerTransform.position, this.followerTransform.rotation) as GameObject;
 		this.playerFollower.GetComponent<PlayerFollower> ().Init (this.followerTransform);
-		//this.playerFollower.transform.parent = this.transform;
 	}
 
 	public void AddPowerup(A_Powerup powerup){
@@ -221,6 +211,19 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	public bool IsMagnetized{
 		get { return this.isMagnetized; }
 		set { this.isMagnetized = value; }
+	}
+
+	public void AddPoints( int points ){
+		this.points += points;
+
+		if (this.points % this.expansionLimit == 0) {
+			this.Expand ();
+			GlobalCameraController.PanOut (new Vector3 (0, 2, -4));
+		}
+	}
+
+	public int Points{
+		get { return this.points; }
 	}
 }
 
