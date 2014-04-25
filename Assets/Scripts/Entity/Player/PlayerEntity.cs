@@ -22,7 +22,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	private Vector3 			startOffset;
 
 	private int 				currentLane 	= 1;
-	private int					points 			= 0;
+	private int					mass 			= 0;
 	private bool 				isJumping 		= false;
 	private bool 				isDucking 		= false;
 	private bool				isMagnetized	= false;
@@ -216,17 +216,17 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		set { this.isMagnetized = value; }
 	}
 
-	public void AddPoints( int points ){
-		this.points += points;
+	public void AddMass( int mass ){
+		this.mass += mass;
 
-		if (this.points % this.expansionLimit == 0) {
+		if (this.mass % this.expansionLimit == 0) {
 			this.Expand ();
 			GlobalCameraController.PanOut (new Vector3 (0, 2, -4));
 		}
 	}
 
-	public int Points{
-		get { return this.points; }
+	public int Mass{
+		get { return this.mass; }
 	}
 }
 

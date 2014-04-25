@@ -129,11 +129,8 @@ public class LevelController : MonoBehaviour
 	}
 
 	private void AddSectionToArray( LevelSection section, bool destroyFirst ){
-		//Debug.Log (instance.lastElementInSections);
 		if (destroyFirst) {
 			instance.StartCoroutine("DelayDestroySection", instance.sections [0]);
-			//GameObject.Destroy (instance.sections [0].gameObject);
-			//instance.sections [0] = null;
 			
 			for (int i = 0; i < instance.lastElementInSections - 1; i++) {
 				instance.sections [i] = instance.sections [i + 1];
@@ -144,13 +141,10 @@ public class LevelController : MonoBehaviour
 
 		int element = Mathf.Max (0, instance.lastElementInSections - 1);
 		instance.sections[element] = section;
-
-		//Debug.Break ();
 	}
 
 
 	public static LevelSection GetNextSection(){
-		//return instance.sections [path];
 		return instance.sections [0]; // Which section to get?
 	}
 
@@ -162,16 +156,9 @@ public class LevelController : MonoBehaviour
 		instance.expansionLevel = level;
 	}
 
-	/*
-	public static void DestroyLastSection(){
-		instance.StartCoroutine("DelayDestroyLastSection", instance.sections [instance.currentSection]);
-	}
-	*/
 	IEnumerator DelayDestroySection(LevelSection section){
 		yield return new WaitForSeconds(1.0f);
 
-		//instance.currentSection++;
-		//instance.sections.RemoveAt (0);
 		GameObject.Destroy (section.gameObject);
 	}
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class PlayerCollider : MonoBehaviour
 {
+	public PlayerEntity	entity;
 	public GameObject 	mesh;
 	public Transform	followerTranform;
 	public float 		expansionSpeed = 1.0f;

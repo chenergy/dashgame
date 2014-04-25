@@ -5,7 +5,9 @@ public class UIController : MonoBehaviour {
 	public Transform 	itemTransform;
 	public UISprite		itemBG;
 	public UILabel		itemNameLabel;
-	public UILabel		coinNumLabel;
+	public UILabel		itemMassLabel;
+	public UILabel		totalMassLabel;
+
 	public float		itemDisplayLifetime 	= 1.0f;
 	public float		itemDisplayAppearTime 	= 0.25f;
 
@@ -19,18 +21,19 @@ public class UIController : MonoBehaviour {
 
 			instance.itemBG.gameObject.SetActive(false);
 			instance.itemNameLabel.text = "";
-			instance.coinNumLabel.text = "0";
+			instance.itemMassLabel.text = "";
+			instance.totalMassLabel.text = "0.000 kg";
 		} else {
 			GameObject.Destroy(this.gameObject);
 		}
 	}
 
-	public static void UpdatePoints(int num){
-		instance.coinNumLabel.text = num.ToString();
+	public static void UpdateMass(int num){
+		instance.totalMassLabel.text = (num / 1000.0f).ToString() + " kg";
 	}
 
 	// Updates the visual item
-	public static void UpdateItem(A_CollectableItem item){
+	public static void UpdateItem(Collectable item){
 		// Create a new item based on the model if item does not already exist
 		if (instance.itemNameLabel.text != item.name) {
 			if (instance.currItemMesh != null) {
@@ -46,19 +49,21 @@ public class UIController : MonoBehaviour {
 	}
 
 	// Visual feedback of collecting an item
-	IEnumerator CreateItem (A_CollectableItem item){
+	IEnumerator CreateItem (Collectable item){
 		float timer = 0.0f;
 
 		// Create Item Mesh
 		instance.currItemMesh = GameObject.Instantiate (item.visualPrefab, instance.itemTransform.position, instance.itemTransform.rotation) as GameObject;
 		instance.currItemMesh.transform.localScale = Vector3.zero;
 		instance.itemNameLabel.text = item.name;
+		instance.itemMassLabel.text = (item.mass / 1000.0f).ToString () + " kg";
 
 		// Scale ItemBG Forward
 		instance.itemBG.gameObject.SetActive (true);
 		instance.itemBG.transform.localScale = Vector3.zero;
 		instance.itemBG.GetComponent<TweenScale> ().PlayForward();
 
+		// Lerp toward the target scale
 		Vector3 targetLocalScale = item.visualPrefab.transform.localScale;
 		while (timer < instance.itemDisplayAppearTime) {
 			instance.currItemMesh.transform.localScale = Vector3.Lerp (instance.currItemMesh.transform.localScale, 
@@ -80,6 +85,7 @@ public class UIController : MonoBehaviour {
 		timer = 0.0f;
 		instance.itemBG.GetComponent<TweenScale> ().PlayReverse ();
 
+		// Lerp back to zero scale
 		while (timer < instance.itemBG.GetComponent<TweenScale> ().duration) {
 			instance.currItemMesh.transform.localScale = Vector3.Lerp (instance.currItemMesh.transform.localScale, 
 			                                                           Vector3.zero, 
@@ -91,6 +97,7 @@ public class UIController : MonoBehaviour {
 		instance.itemBG.transform.localScale = Vector3.zero;
 		instance.itemBG.gameObject.SetActive (false);
 		instance.itemNameLabel.text = "";
+		instance.itemMassLabel.text = "";
 		GameObject.Destroy (instance.currItemMesh);
 	}
 }
