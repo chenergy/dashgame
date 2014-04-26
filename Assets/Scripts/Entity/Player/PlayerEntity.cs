@@ -221,6 +221,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 
 		if (this.mass % this.expansionLimit == 0) {
 			this.Expand ();
+			GameController.CreateBoss();
 			GlobalCameraController.PanOut (new Vector3 (0, 2, -4));
 		}
 	}

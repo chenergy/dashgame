@@ -21,7 +21,7 @@ public class LevelController : MonoBehaviour
 	private int 				lastElementInSections = 0;
 	private int 				currentLane = 1;
 	private int					expansionLevel = 0;
-
+	
 	private PlayerLaneTransform	leftTransform;
 	private PlayerLaneTransform	centerTransform;
 	private PlayerLaneTransform	rightTransform;
@@ -32,19 +32,21 @@ public class LevelController : MonoBehaviour
 	void Awake(){
 		if (LevelController.instance == null) {
 			LevelController.instance = this;
-
-			// Create Empty parent level
-			instance.parentLevel = new GameObject();
-
-			// Setup total sections based on # to preload + transition sections
-			instance.sections = new LevelSection[instance.preLoadedSections + instance.transitionSectionsByExpLevel.Length];
-
-			// Create preloaded sections
-			for(int i = 0; i < instance.preLoadedSections; i++){
-				LevelController.GenerateRandomLevelSection( false );
-			}
 		} else {
 			GameObject.Destroy(this.gameObject);
+		}
+	}
+
+	public static void InitLevel(){
+		// Create Empty parent level
+		instance.parentLevel = new GameObject();
+		
+		// Setup total sections based on # to preload + transition sections
+		instance.sections = new LevelSection[instance.preLoadedSections + instance.transitionSectionsByExpLevel.Length];
+		
+		// Create preloaded sections
+		for(int i = 0; i < instance.preLoadedSections; i++){
+			LevelController.GenerateRandomLevelSection( false );
 		}
 	}
 

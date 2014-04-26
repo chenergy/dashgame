@@ -30,7 +30,7 @@ public abstract class A_Boss : MonoBehaviour, IEntity
 		this.ai.Reset ();
 
 		if (Input.GetMouseButtonDown (0)) {
-			this.OnHit();
+			//this.OnHit();
 			Debug.Log(this.lives);
 		}
 	}

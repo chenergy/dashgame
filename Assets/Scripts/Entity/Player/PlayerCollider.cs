@@ -13,9 +13,12 @@ public class PlayerCollider : MonoBehaviour
 	private List<GameObject> 	collected;
 	private int 				expansionLevel = 0;
 
+	void Awake(){
+		this.sphereCollider = this.collider as SphereCollider;
+	}
+
 	void Start(){
 		this.collected = new List<GameObject> ();
-		this.sphereCollider = this.collider as SphereCollider;
 	}
 
 	// Increase the expansion level of the ball

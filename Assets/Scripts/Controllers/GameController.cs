@@ -4,7 +4,8 @@ using System.Collections;
 public class GameController : MonoBehaviour {
 	private static GameController instance = null;
 
-	public GameObject 		testPlayer;
+	public GameObject 		testPlayerPrefab;
+	public GameObject 		testBossPrefab;
 	public PlayerEntity 	activePlayer;
 	public float 			speed 			= 20.0f;
 	public float			speedIncrement	= 1.0f;
@@ -24,13 +25,19 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Use this for initialization
+	/*
 	void Start () {
 		if (instance.activePlayer == null) {
 			instance.activePlayer = (GameObject.Instantiate (instance.testPlayer, 
 		                                                 Vector3.zero, 
 		                                                 instance.testPlayer.transform.rotation) 
 		                         as GameObject).GetComponent<PlayerEntity> ();
-		}
+         }
+	}
+	*/
+
+	void Start(){
+		instance.Init();
 	}
 
 	void Update(){
@@ -53,9 +60,36 @@ public class GameController : MonoBehaviour {
 		}
 		if (instance.gameOver) {
 			if (GUI.Button (new Rect (Screen.width/2 - 50, Screen.height - 150, 100, 100), "Restart")) {
+				instance.gameOver = false;
 				Application.LoadLevel("test-scene");
+				//instance.Reset();
+				instance.Invoke("Init", 0.1f);
 			}
 		}
+	}
+
+	private void Init(){
+		if (instance.activePlayer == null) {
+			instance.activePlayer = (GameObject.Instantiate (instance.testPlayerPrefab, 
+			                                                 Vector3.zero, 
+			                                                 instance.testPlayerPrefab.transform.rotation) 
+			                         as GameObject).GetComponent<PlayerEntity> ();
+		}
+
+		//GameController.CreateBoss ();
+
+		LevelController.InitLevel ();
+	}
+
+	private void Reset(){
+		if (instance.activePlayer != null) {
+			GameObject.Destroy(instance.activePlayer.gameObject);
+			instance.activePlayer = null;
+		}
+	}
+
+	public static void CreateBoss(){
+		GameObject.Instantiate (instance.testBossPrefab, Vector3.zero, Quaternion.identity);
 	}
 
 	public static void SwipeRight(){
@@ -75,7 +109,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	public static void StartGame(){
-		LevelController.StartLevel();
+		LevelController.StartLevel ();
 		GlobalCameraController.FocusOnPlayer (instance.activePlayer);
 		instance.stopped = false;
 	}
@@ -86,6 +120,10 @@ public class GameController : MonoBehaviour {
 		instance.activePlayer.Die ();
 		instance.stopped = true;
 		instance.gameOver = true;
+	}
+
+	public static void AssignPlayer (PlayerEntity player){
+		instance.activePlayer = player;
 	}
 
 	public static bool IsStopped{
