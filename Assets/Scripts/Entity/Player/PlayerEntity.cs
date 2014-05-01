@@ -30,7 +30,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	// Use this for initialization
 	void Start ()
 	{
-		this.startSpeed = GameController.GameSpeed;
+		this.startSpeed = LevelController.GameSpeed;
 		this.startOffset = Vector3.up;
 
 		if (this.playerFollower != null) {
@@ -42,13 +42,13 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	void Update ()
 	{
 		if (this.targetLane != null) {
-			if (!GameController.IsStopped) {
+			if (!LevelController.IsStopped) {
 				this.transform.position = Vector3.Lerp (this.transform.position, this.targetLane.transform.position + new Vector3 (0, this.playerCollider.Radius, 0), Time.deltaTime * 10.0f);
 				if (Quaternion.Angle(this.transform.rotation, this.targetLane.transform.rotation) > 1f){
 					this.transform.rotation = Quaternion.Lerp (this.transform.rotation, Quaternion.Euler (new Vector3 (0, this.targetLane.transform.rotation.eulerAngles.y, 0)), Time.deltaTime * 10);
 				}
 
-				this.gobj.transform.Rotate (new Vector3 (this.maxSpeed * Time.deltaTime * (GameController.GameSpeed / this.startSpeed), 0, 0));
+				this.gobj.transform.Rotate (new Vector3 (this.maxSpeed * Time.deltaTime * (LevelController.GameSpeed / this.startSpeed), 0, 0));
 			}
 		}
 	}
@@ -58,7 +58,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	}
 
 	public void MoveLeft(){
-		if (!GameController.IsStopped) {
+		if (!LevelController.IsStopped) {
 			if (this.currentLane > 0){
 				this.currentLane--;
 			}
@@ -67,7 +67,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	}
 
 	public void MoveRight(){
-		if (!GameController.IsStopped) {
+		if (!LevelController.IsStopped) {
 			if (this.currentLane < 2){
 				this.currentLane++;
 			}
@@ -76,7 +76,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	}
 
 	public void MoveDown(){
-		if (!GameController.IsStopped) {
+		if (!LevelController.IsStopped) {
 			if (this.isJumping) {
 				this.FallFast();
 			}else{
@@ -88,7 +88,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	}
 
 	public void MoveUp(){
-		if (!GameController.IsStopped) {
+		if (!LevelController.IsStopped) {
 			if (!this.isJumping) {
 				if (this.isDucking){
 					this.isDucking = false;
@@ -221,7 +221,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 
 		if (this.mass % this.expansionLimit == 0) {
 			this.Expand ();
-			GameController.CreateBoss();
+			LevelController.CreateBoss();
 			GlobalCameraController.PanOut (new Vector3 (0, 2, -4));
 		}
 	}

@@ -10,6 +10,20 @@ public class LevelController : MonoBehaviour
 		public GameObject[] sectionPrefabs;
 	}
 
+	// Overall Game Factors
+	public float 				speed 			= 40.0f;
+	public float				speedIncrement	= 0.1f;
+	public float 				maxSpeed 		= 80.0f;
+	public GameObject 			testPlayerPrefab;
+	public GameObject 			testBossPrefab;
+	public AudioClip			levelAudio;
+
+	private PlayerEntity 		activePlayer;
+	private bool 				stopped 				= true;
+	private bool 				gameOver 				= false;
+	private bool				canCollide 				= true;
+
+	// Level Loading Factors
 	public int 					preLoadedSections = 15;
 	public Transform 			nextSectionSpawnLocation;
 	public GameObject			baseLaneTransform;
@@ -18,15 +32,15 @@ public class LevelController : MonoBehaviour
 
 	private GameObject 			parentLevel;
 	private LevelSection[] 		sections;
-	private int 				lastElementInSections = 0;
-	private int 				currentLane = 1;
-	private int					expansionLevel = 0;
-	
+	private int 				lastElementInSections 	= 0;
+	private int 				currentLane 			= 1;
+	private int					expansionLevel 			= 0;
 	private PlayerLaneTransform	leftTransform;
 	private PlayerLaneTransform	centerTransform;
 	private PlayerLaneTransform	rightTransform;
 	private PlayerLaneTransform[] laneTransforms;
 
+	// Instance
 	private static LevelController instance = null;
 
 	void Awake(){
@@ -37,7 +51,48 @@ public class LevelController : MonoBehaviour
 		}
 	}
 
-	public static void InitLevel(){
+	void Start(){
+		instance.InitLevel ();
+		//instance.StartLevel ();
+	}
+
+	void Update(){
+		if (!instance.stopped) {
+			if (instance.speed < instance.maxSpeed){
+				instance.speed += instance.speedIncrement * Time.deltaTime;
+			}
+		}
+	}
+
+
+	void OnGUI(){
+		if (instance.stopped) {
+			instance.canCollide = GUI.Toggle (new Rect (0, 20, 200, 20), instance.canCollide, "Can Collide?");
+		}
+		
+		if (instance.stopped && !instance.gameOver) {
+			if (GUI.Button (new Rect (Screen.width/2 - 50, Screen.height/2 - 50, 100, 100), "Start")) {
+				instance.StartLevel ();
+			}
+		}
+		if (instance.gameOver) {
+			if (GUI.Button (new Rect (Screen.width/2 - 50, Screen.height - 150, 100, 100), "Restart")) {
+				instance.gameOver = false;
+				Application.LoadLevel("test-scene");
+				//instance.Reset();
+				//instance.Invoke("InitLevel", 0.1f);
+			}
+		}
+	}
+
+	private void InitLevel(){
+		if (instance.activePlayer == null) {
+			instance.activePlayer = (GameObject.Instantiate (instance.testPlayerPrefab, 
+			                                                 Vector3.zero, 
+			                                                 instance.testPlayerPrefab.transform.rotation) 
+			                         as GameObject).GetComponent<PlayerEntity> ();
+		}
+
 		// Create Empty parent level
 		instance.parentLevel = new GameObject();
 		
@@ -48,9 +103,20 @@ public class LevelController : MonoBehaviour
 		for(int i = 0; i < instance.preLoadedSections; i++){
 			LevelController.GenerateRandomLevelSection( false );
 		}
+
+		GameController.SetInGame ();
+
+		AudioController.PlayAudioLoop (this.levelAudio);
 	}
 
-	public static void StartLevel(){
+	private void Reset(){
+		if (instance.activePlayer != null) {
+			GameObject.Destroy(instance.activePlayer.gameObject);
+			instance.activePlayer = null;
+		}
+	}
+
+	private void StartLevel(){
 		// Create each transform for the three lanes
 		instance.leftTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.sections [0].paths[0][1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
 		instance.centerTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.sections [0].paths[1][1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
@@ -67,11 +133,13 @@ public class LevelController : MonoBehaviour
 		instance.centerTransform.SetNextPath (instance.sections [0]);
 		instance.rightTransform.SetNextPath (instance.sections [0]);
 
-		GameController.ActivePlayer.StartMoving ();
+		instance.activePlayer.StartMoving ();
+		GlobalCameraController.FocusOnPlayer (instance.activePlayer);
+		instance.stopped = false;
 	}
 
 	// Stop each transform, which stops the player following it
-	public static void StopLevel(){
+	void StopLevel(){
 		instance.leftTransform.Stop ();
 		instance.centerTransform.Stop ();
 		instance.rightTransform.Stop ();
@@ -81,6 +149,19 @@ public class LevelController : MonoBehaviour
 		foreach (GameObject g in grounds) {
 			g.GetComponent<MeshCollider>().enabled = true;
 		}
+	}
+
+	public static void CreateBoss(){
+		GlobalCameraController.PanOut (new Vector3 (0, 5, -10));
+		GameObject.Instantiate (instance.testBossPrefab, Vector3.zero, Quaternion.identity);
+	}
+
+	public static void EndGame(){
+		instance.StopAllCoroutines ();
+		instance.StopLevel ();
+		instance.activePlayer.Die ();
+		instance.stopped = true;
+		instance.gameOver = true;
 	}
 
 	// Add a random LevelSection to the path
@@ -162,6 +243,26 @@ public class LevelController : MonoBehaviour
 		yield return new WaitForSeconds(1.0f);
 
 		GameObject.Destroy (section.gameObject);
+	}
+
+	public static bool IsStopped{
+		get { return instance.stopped; }
+	}
+	
+	public static float GameSpeed{
+		get { return instance.speed; }
+	}
+	
+	public static float MaxSpeed{
+		get { return instance.maxSpeed; }
+	}
+	
+	public static PlayerEntity ActivePlayer{
+		get { return instance.activePlayer; }
+	}
+	
+	public static bool CanCollide{
+		get { return instance.canCollide; }
 	}
 }
 

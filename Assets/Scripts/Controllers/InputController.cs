@@ -29,7 +29,6 @@ public class InputController : MonoBehaviour{
 	{
 		if (Input.touchCount > 0) {
 			Touch t = Input.touches [0];
-			//foreach (Touch t in Input.touches) {
 			switch (t.phase) {
 			case TouchPhase.Began:
 				instance.startTouchPos = instance.curTouchPos = t.position;
@@ -42,17 +41,9 @@ public class InputController : MonoBehaviour{
 				instance.curTouchPos = t.position;
 				CheckPerformAction ();
 				break;
-				/*
-			case TouchPhase.Ended:
-				instance.curTouchPos = Vector2.zero;
-				instance.startTouchPos = Vector2.zero;
-				instance.canPerformAction = true;
-				break;
-				*/
 			default:
 				break;
 			}
-			//}
 		} else {
 			instance.curTouchPos = Vector2.zero;
 			instance.startTouchPos = Vector2.zero;
@@ -77,13 +68,5 @@ public class InputController : MonoBehaviour{
 			}
 		}
 	}
-
-	/*
-	void OnGUI(){
-		GUI.TextArea (new Rect (0, 0, 200, 20), "StartPos: " + instance.startTouchPos.ToString ());
-		GUI.TextArea (new Rect (0, 30, 200, 20), "CurPos: " + instance.curTouchPos.ToString ());
-		GUI.TextArea (new Rect (0, 60, 200, 20), "Coins: " + GameController.Coins.ToString ());
-	}
-	*/
 }
 

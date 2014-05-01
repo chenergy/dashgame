@@ -10,7 +10,7 @@ public class PlayerLaneTransform : MonoBehaviour
 	}
 
 	public void SetNextPath(LevelSection section){
-		LeanTween.moveSpline (this.gameObject, section.paths[lane], GameController.MaxSpeed / (section.speed + GameController.GameSpeed)).setOnComplete (AssignNextSectionPath).setEase(LeanTweenType.linear).setOrientToPath(true);
+		LeanTween.moveSpline (this.gameObject, section.paths[lane], LevelController.MaxSpeed / (section.speed + LevelController.GameSpeed)).setOnComplete (AssignNextSectionPath).setEase(LeanTweenType.linear).setOrientToPath(true);
 		section.SetAsTraversed ();
 	}
 

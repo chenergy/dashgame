@@ -28,6 +28,7 @@ public class UIController : MonoBehaviour {
 		}
 	}
 
+
 	public static void UpdateMass(int num){
 		instance.totalMassLabel.text = (num / 1000.0f).ToString() + " kg";
 	}
@@ -99,5 +100,9 @@ public class UIController : MonoBehaviour {
 		instance.itemNameLabel.text = "";
 		instance.itemMassLabel.text = "";
 		GameObject.Destroy (instance.currItemMesh);
+	}
+
+	public void GoToStartMenu(){
+		Application.LoadLevel ("start-menu");
 	}
 }

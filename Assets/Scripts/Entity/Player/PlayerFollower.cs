@@ -13,7 +13,7 @@ public class PlayerFollower : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-		if (!GameController.IsStopped) {
+		if (!LevelController.IsStopped) {
 			if (this.targetTransform != null) {
 				this.transform.position = this.targetTransform.position;
 				this.transform.rotation = this.targetTransform.rotation;

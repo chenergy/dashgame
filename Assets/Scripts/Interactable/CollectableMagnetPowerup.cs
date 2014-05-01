@@ -8,7 +8,7 @@ public class CollectableMagnetPowerup : Collectable
 	public PowerupType powerupType = PowerupType.NONE;
 
 	public override void AffectPlayer(PlayerEntity p){
-		if (GameController.ActivePlayer != null) {
+		if (LevelController.ActivePlayer != null) {
 			switch (this.powerupType) {
 			case PowerupType.MAGNET:
 				A_Powerup magnet = new PowerupMagnet (5.0f);

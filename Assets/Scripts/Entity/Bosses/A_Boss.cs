@@ -14,11 +14,12 @@ public abstract class A_Boss : MonoBehaviour, IEntity
 	void Start ()
 	{
 		this.anim = this.GetComponent<Animator> ();
-		this.player = GameController.ActivePlayer;
+		this.player = LevelController.ActivePlayer;
 
 		// Parent to the player's location
 		this.transform.parent = this.player.transform;
 		this.transform.localPosition = Vector3.zero;
+		this.transform.localRotation = Quaternion.identity;
 
 		this.InitAI ();
 	}

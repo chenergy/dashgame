@@ -13,8 +13,8 @@ public class PowerupMagnet : A_Powerup
 			if (item != null)
 				gobj.GetComponent<A_CollectableItem> ().Magnetize ();
 		}*/
-		if (GameController.ActivePlayer != null) {
-			GameController.ActivePlayer.IsMagnetized = true;
+		if (LevelController.ActivePlayer != null) {
+			LevelController.ActivePlayer.IsMagnetized = true;
 		}
 
 		/*foreach (A_CollectableItem c in GameObject.FindObjectsOfType(typeof(A_CollectableItem))) {
@@ -26,8 +26,8 @@ public class PowerupMagnet : A_Powerup
 	}
 
 	public override void OnComplete(){
-		if (GameController.ActivePlayer != null) {
-			GameController.ActivePlayer.IsMagnetized = false;
+		if (LevelController.ActivePlayer != null) {
+			LevelController.ActivePlayer.IsMagnetized = false;
 		}
 	}
 }
