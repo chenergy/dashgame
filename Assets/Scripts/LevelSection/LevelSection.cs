@@ -48,6 +48,7 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 		this.Spawn (this.obstacles);
 	}
 
+	/*
 	void OnDrawGizmosSelected(){
 		Transform[][] paths = new Transform[][] { this.leftPath, this.centerPath, this.rightPath };
 		foreach (Transform[] thispath in paths) {
@@ -56,7 +57,7 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 			}
 		}
 	}
-
+	*/
 	public void SetAsTraversed(){
 		this.hasTraversed = true;
 	}

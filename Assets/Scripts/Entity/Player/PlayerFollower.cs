@@ -9,7 +9,9 @@ public class PlayerFollower : MonoBehaviour
 
 	public void Init(Transform targetTransform){
 		this.targetTransform = targetTransform;
+		this.transform.parent = targetTransform;
 	}
+	/*
 	// Update is called once per frame
 	void Update ()
 	{
@@ -20,5 +22,6 @@ public class PlayerFollower : MonoBehaviour
 			}
 		}
 	}
+	*/
 }
 

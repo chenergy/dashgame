@@ -6,8 +6,19 @@ public class GlobalCameraController : MonoBehaviour
 	private static GlobalCameraController instance = null;
 
 	public Camera			skyboxCamera;
-	public Vector3 			offset;
-	private PlayerEntity 	entity;
+	
+	private float 			secondsToPan = 2.0f;
+	private Transform		baseTransform;
+	private Vector3 		baseLocalPositionOffset;
+
+	private Transform		lookTransform;
+	private Vector3			lookLocalPositionOffset;
+
+
+	private Quaternion		baseLocalRotationOffset;
+	private Quaternion		lookLocalRotationOffset;
+
+	private bool 			isCameraMoving = false;
 
 	void Awake(){
 		if (GlobalCameraController.instance == null) {
@@ -19,30 +30,121 @@ public class GlobalCameraController : MonoBehaviour
 
 
 	void LateUpdate(){
-		if (instance.entity != null) {
-			instance.transform.position = entity.playerFollower.transform.TransformPoint (offset);
-			instance.transform.rotation = Quaternion.Euler (0, entity.transform.rotation.eulerAngles.y, 0);
+		/*
+		if (instance.baseTransform != null) {
+			if (!this.isCameraMoving){
+				instance.transform.position = instance.baseTransform.TransformPoint (baseLocalPositionOffset);
+				instance.transform.rotation = Quaternion.Euler (0, instance.baseTransform.rotation.eulerAngles.y, 0);
+			}
+		}
+		*/
+
+		skyboxCamera.transform.rotation = instance.transform.rotation;
+	}
+
+
+	public static void SetNewBaseTransform(Transform baseTransform, Vector3 baseTargetLocalOffset = default(Vector3)){
+		instance.StopCoroutine ("MoveRoutine");
+
+		instance.transform.parent 			= baseTransform;
+		instance.baseTransform 				= baseTransform;
+		instance.baseLocalPositionOffset 	= baseTargetLocalOffset;
+
+		instance.StartCoroutine ("MoveRoutine");
+	}
+
+
+	public static void AddToOffset (Vector3 amount){
+		instance.StopCoroutine ("MoveRoutine");
+
+		instance.baseLocalPositionOffset += amount;
+
+		instance.StartCoroutine ("MoveRoutine");
+	}
+
+
+	public static void SetNewLookTransform(Transform lookTransform, float duration, Vector3 lookTransformLocalOffset = default(Vector3)){
+		/*
+		instance.StopCoroutine ("LookRoutine");
+
+		if (lookTransform == null) {
+			instance.lookTransform = instance.transform;
+			instance.lookLocalPositionOffset = instance.lookTransform.forward;
+		} else {
+			instance.lookTransform = lookTransform;
+			instance.lookLocalPositionOffset = lookTransformLocalOffset;
 		}
 
-		skyboxCamera.transform.rotation = this.transform.rotation;
+		instance.StartCoroutine ("LookRoutine", duration);
+		*/
 	}
 
 
-	public static void FocusOnPlayer(PlayerEntity entity){
-		instance.entity = entity;
-		instance.transform.rotation = Quaternion.identity;
-	}
+	IEnumerator MoveRoutine(){
+		instance.isCameraMoving = true;
 
-	public static void PanOut (Vector3 amount){
-		instance.StartCoroutine (instance.PanOutRoutine (amount));
-	}
-
-	IEnumerator PanOutRoutine(Vector3 amount){
-		Vector3 target = amount + offset;
-		while ((offset - target).sqrMagnitude > 0.1f) {
-			offset += Time.deltaTime * (target - offset).normalized;
+		Vector3 startPosition = instance.transform.localPosition;
+		Vector3 targetPosition = instance.baseLocalPositionOffset;
+		float t = 0.0f;
+		
+		//while ((startPosition - targetPosition).sqrMagnitude > 0.1f) {
+		while (t < 1.0f){
 			yield return new WaitForEndOfFrame();
+			t += Time.deltaTime / secondsToPan;
+
+			//instance.baseLocalPositionOffset = Vector3.Lerp (startPosition, targetPosition, Mathf.SmoothStep (0.0f, 1.0f, t));
+			//instance.transform.LookAt(Vector3.Lerp(this.transform.forward, this.baseTransform.transform.position, Mathf.SmoothStep (0.0f, 1.0f, t)));
+			instance.transform.localPosition = Vector3.Lerp (startPosition, targetPosition, Mathf.SmoothStep (0.0f, 1.0f, t));
+			//instance.transform.rotation = Quaternion.Lerp (instance.transform.rotation, Quaternion.LookRotation(instance.lookTransform.position - instance.transform.position), Mathf.SmoothStep (0.0f, 1.0f, t));
+		}
+
+		instance.transform.localPosition = targetPosition;
+		instance.isCameraMoving = false;
+	}
+
+
+	IEnumerator LookRoutine( float duration ){
+		float t = 0.0f;
+
+		while (t < 1.0f){
+			yield return new WaitForEndOfFrame();
+			t += Time.deltaTime / duration;
+
+			instance.transform.LookAt( instance.lookTransform.position + lookLocalPositionOffset );
+		}
+
+		instance.lookTransform = instance.transform;
+		instance.transform.localRotation = Quaternion.identity;
+		instance.lookLocalPositionOffset = instance.lookTransform.forward;
+	}
+
+
+
+	/*
+	IEnumerator MoveToRoutine(Vector3 targetLocalPositionOffset){
+		Vector3 startOffset = instance.baseLocalPositionOffset;
+		float t = 0.0f;
+
+		while ((baseLocalPositionOffset - targetLocalPositionOffset).sqrMagnitude > 0.1f) {
+			instance.baseLocalPositionOffset = Vector3.Lerp (startOffset, targetLocalPositionOffset, Mathf.SmoothStep (0.0f, 1.0f, t));
+
+			yield return new WaitForEndOfFrame();
+			t += Time.deltaTime / seconds;
 		}
 	}
+
+
+	IEnumerator RotateToRoutine(Quaternion target){
+		Quaternion startRotation = instance.transform.rotation;
+		float t = 0.0f;
+		
+		while (Quaternion.Angle(this.transform.rotation, target) > 0.1f) {
+			instance.transform.rotation = Quaternion.Lerp (startRotation, target, Mathf.SmoothStep (0.0f, 1.0f, t));
+
+			yield return new WaitForEndOfFrame();
+			t += Time.deltaTime / seconds;
+		}
+	}
+	*/
 }
 

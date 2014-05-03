@@ -134,7 +134,7 @@ public class LevelController : MonoBehaviour
 		instance.rightTransform.SetNextPath (instance.sections [0]);
 
 		instance.activePlayer.StartMoving ();
-		GlobalCameraController.FocusOnPlayer (instance.activePlayer);
+		GlobalCameraController.SetNewBaseTransform (instance.activePlayer.playerFollower.transform, new Vector3 (0f, 5f, -10f));
 		instance.stopped = false;
 	}
 
@@ -152,7 +152,7 @@ public class LevelController : MonoBehaviour
 	}
 
 	public static void CreateBoss(){
-		GlobalCameraController.PanOut (new Vector3 (0, 5, -10));
+		GlobalCameraController.AddToOffset (new Vector3 (0, 5, -10));
 		GameObject.Instantiate (instance.testBossPrefab, Vector3.zero, Quaternion.identity);
 	}
 
