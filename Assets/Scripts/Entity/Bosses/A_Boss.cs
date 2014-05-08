@@ -9,6 +9,7 @@ public abstract class A_Boss : MonoBehaviour, IEntity
 	protected Animator 		anim;
 	protected PlayerEntity	player;
 	protected A_BTNode 		ai;
+	protected Transform		baseTransform;
 
 	// Use this for initialization
 	void Start ()
@@ -16,8 +17,9 @@ public abstract class A_Boss : MonoBehaviour, IEntity
 		this.anim = this.GetComponent<Animator> ();
 		this.player = LevelController.ActivePlayer;
 
-		// Parent to the player's location
-		this.transform.parent = this.player.transform;
+		// Parent to the lane
+		//this.transform.parent = this.player.transform;
+		this.transform.parent = LevelController.LanePositionTransform;
 		this.transform.localPosition = Vector3.zero;
 		this.transform.localRotation = Quaternion.identity;
 

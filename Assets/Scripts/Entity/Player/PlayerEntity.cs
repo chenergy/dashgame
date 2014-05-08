@@ -26,6 +26,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	private bool 				isJumping 		= false;
 	private bool 				isDucking 		= false;
 	private bool				isMagnetized	= false;
+	private HeightLevel 		heightLevel		= HeightLevel.MIDDLE;
 
 	// Use this for initialization
 	void Start ()
@@ -129,7 +130,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		// Create the transition section
 		LevelController.GenerateTransitionSection ();
 
-		this.playerCollider.Expand (1.5f);
+		this.playerCollider.Expand (2.0f);
 	}
 
 	/* CoRoutines */
@@ -227,6 +228,10 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		set { this.isMagnetized = value; }
 	}
 
+	public bool IsJumping{
+		get { return this.isJumping; }
+	}
+
 	public void AddMass( int mass ){
 		this.mass += mass;
 
@@ -244,6 +249,11 @@ public class PlayerEntity : MonoBehaviour, IEntity
 
 	public int Mass{
 		get { return this.mass; }
+	}
+
+	public HeightLevel HeightLevel{
+		get { return this.heightLevel; }
+		set { this.heightLevel = value; }
 	}
 }
 

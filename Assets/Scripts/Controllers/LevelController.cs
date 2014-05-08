@@ -4,18 +4,21 @@ using System.Collections.Generic;
 
 public class LevelController : MonoBehaviour
 {
+	/*
 	[System.Serializable]
 	public class SectionContainer
 	{
 		public GameObject[] sectionPrefabs;
 	}
+	*/
 
 	// Overall Game Factors
 	public float 				speed 			= 40.0f;
 	public float				speedIncrement	= 0.1f;
 	public float 				maxSpeed 		= 80.0f;
-	public GameObject 			testPlayerPrefab;
-	public GameObject 			testBossPrefab;
+	public GameObject 			playerPrefab;
+	public GameObject 			bossPrefab;
+	public GameObject			startupSection;
 	public AudioClip			levelAudio;
 
 	private PlayerEntity 		activePlayer;
@@ -26,8 +29,9 @@ public class LevelController : MonoBehaviour
 	// Level Loading Factors
 	public int 					preLoadedSections = 15;
 	public Transform 			nextSectionSpawnLocation;
-	public GameObject			baseLaneTransform;
-	public SectionContainer[]	sectionPrefabsByExpLevel;
+	public GameObject			lanePositionTransformPrefab;
+	public GameObject			basePlayerLaneTransformPrefab;
+	//public SectionContainer[]	sectionPrefabsByExpLevel;
 	public GameObject[]			transitionSectionsByExpLevel;
 
 	private GameObject 			parentLevel;
@@ -53,6 +57,8 @@ public class LevelController : MonoBehaviour
 
 	void Start(){
 		instance.InitLevel ();
+		Invoke ("StartLevel", 0.5f);
+		UIController.Resume ();
 		//instance.StartLevel ();
 	}
 
@@ -69,12 +75,13 @@ public class LevelController : MonoBehaviour
 		if (instance.stopped) {
 			instance.canCollide = GUI.Toggle (new Rect (0, 20, 200, 20), instance.canCollide, "Can Collide?");
 		}
-		
+		/*
 		if (instance.stopped && !instance.gameOver) {
 			if (GUI.Button (new Rect (Screen.width/2 - 50, Screen.height/2 - 50, 100, 100), "Start")) {
 				instance.StartLevel ();
 			}
 		}
+		*/
 		if (instance.gameOver) {
 			if (GUI.Button (new Rect (Screen.width/2 - 50, Screen.height - 150, 100, 100), "Restart")) {
 				instance.gameOver = false;
@@ -87,9 +94,9 @@ public class LevelController : MonoBehaviour
 
 	private void InitLevel(){
 		if (instance.activePlayer == null) {
-			instance.activePlayer = (GameObject.Instantiate (instance.testPlayerPrefab, 
+			instance.activePlayer = (GameObject.Instantiate (instance.playerPrefab, 
 			                                                 Vector3.zero, 
-			                                                 instance.testPlayerPrefab.transform.rotation) 
+			                                                 instance.playerPrefab.transform.rotation) 
 			                         as GameObject).GetComponent<PlayerEntity> ();
 		}
 
@@ -98,9 +105,12 @@ public class LevelController : MonoBehaviour
 		
 		// Setup total sections based on # to preload + transition sections
 		instance.sections = new LevelSection[instance.preLoadedSections + instance.transitionSectionsByExpLevel.Length];
-		
+
+		// Create first startup section
+		LevelController.GenerateLevelSection (this.startupSection, false);
+
 		// Create preloaded sections
-		for(int i = 0; i < instance.preLoadedSections; i++){
+		for(int i = 0; i < instance.preLoadedSections - 1; i++){
 			LevelController.GenerateRandomLevelSection( false );
 		}
 
@@ -118,15 +128,21 @@ public class LevelController : MonoBehaviour
 
 	private void StartLevel(){
 		// Create each transform for the three lanes
-		instance.leftTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.sections [0].paths[0][1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
-		instance.centerTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.sections [0].paths[1][1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
-		instance.rightTransform = (GameObject.Instantiate (instance.baseLaneTransform, instance.sections [0].paths[2][1], instance.baseLaneTransform.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
+		instance.leftTransform = (GameObject.Instantiate (instance.basePlayerLaneTransformPrefab, instance.sections [0].GetPath(0)[1], instance.basePlayerLaneTransformPrefab.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
+		instance.centerTransform = (GameObject.Instantiate (instance.basePlayerLaneTransformPrefab, instance.sections [0].GetPath(0)[1], instance.basePlayerLaneTransformPrefab.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
+		instance.rightTransform = (GameObject.Instantiate (instance.basePlayerLaneTransformPrefab, instance.sections [0].GetPath(0)[1], instance.basePlayerLaneTransformPrefab.transform.rotation) as GameObject).GetComponent<PlayerLaneTransform>();
 
 		instance.laneTransforms = new PlayerLaneTransform[] { instance.leftTransform, instance.centerTransform, instance.rightTransform };
 
 		instance.leftTransform.Init (0);
 		instance.centerTransform.Init (1);
 		instance.rightTransform.Init (2);
+
+		// Create the base lane position transform (used by boss)
+		instance.lanePositionTransformPrefab = GameObject.Instantiate (instance.lanePositionTransformPrefab) as GameObject;
+		instance.lanePositionTransformPrefab.transform.parent = instance.centerTransform.transform;
+		instance.lanePositionTransformPrefab.transform.localPosition = Vector3.zero;
+		instance.lanePositionTransformPrefab.transform.localRotation = Quaternion.identity;
 
 		// Assign the transforms to the designated paths
 		instance.leftTransform.SetNextPath (instance.sections [0]);
@@ -152,8 +168,8 @@ public class LevelController : MonoBehaviour
 	}
 
 	public static void CreateBoss(){
-		GlobalCameraController.AddToOffset (new Vector3 (0, 5, -10));
-		GameObject.Instantiate (instance.testBossPrefab, Vector3.zero, Quaternion.identity);
+		//GlobalCameraController.AddToOffset (new Vector3 (0, 5, -10));
+		GameObject.Instantiate (instance.bossPrefab, Vector3.zero, Quaternion.identity);
 	}
 
 	public static void EndGame(){
@@ -164,6 +180,10 @@ public class LevelController : MonoBehaviour
 		instance.gameOver = true;
 	}
 
+	public static void GenerateLevelSection( GameObject section, bool destroyFirst = true ){
+		instance.CreateSectionAndAddToPath (section, destroyFirst);
+	}
+	/*
 	// Add a random LevelSection to the path
 	public static void GenerateRandomLevelSection( bool destroyFirst = true ){
 		// Find the next section to be loaded randomly
@@ -175,10 +195,25 @@ public class LevelController : MonoBehaviour
 			instance.CreateSectionAndAddToPath (nextSection, destroyFirst);
 		}
 	}
+	*/
+
+	// Add a random LevelSection to the path
+	public static void GenerateRandomLevelSection( bool destroyFirst = true ){
+		// Find the next section to be loaded randomly
+		int num = instance.sections [instance.lastElementInSections - 1].nextSections.Length;
+		int next = Random.Range (0, num);
+		
+		if (num > 0) {
+			// Get the sections from the one right before the last
+			GameObject nextSection = instance.sections [instance.lastElementInSections - 1].nextSections [next];
+			instance.CreateSectionAndAddToPath (nextSection, destroyFirst);
+		}
+	}
 
 	// Add a Transition type LevelSection to the end of path
 	public static void GenerateTransitionSection(){
 		if (instance.expansionLevel < instance.transitionSectionsByExpLevel.Length) {
+			// Get the transition section that is one less than the expansion level
 			instance.CreateSectionAndAddToPath (instance.transitionSectionsByExpLevel [instance.expansionLevel], false);
 		}
 	}
@@ -206,6 +241,7 @@ public class LevelController : MonoBehaviour
 	}
 
 	private void AddSectionPath( LevelSection section, bool destroyFirst ){
+		// Add section if the last element is less than the total length of sections
 		if (instance.lastElementInSections < instance.sections.Length) {
 			instance.AddSectionToArray( section, destroyFirst );
 		}
@@ -213,8 +249,12 @@ public class LevelController : MonoBehaviour
 
 	private void AddSectionToArray( LevelSection section, bool destroyFirst ){
 		if (destroyFirst) {
-			instance.StartCoroutine("DelayDestroySection", instance.sections [0]);
-			
+			// Destroy the first object in sections
+			if (instance.sections[0] != null){
+				instance.StartCoroutine("DelayDestroySection", instance.sections [0]);
+			}
+
+			// Shift everything left
 			for (int i = 0; i < instance.lastElementInSections - 1; i++) {
 				instance.sections [i] = instance.sections [i + 1];
 			}
@@ -222,10 +262,16 @@ public class LevelController : MonoBehaviour
 			instance.lastElementInSections++;
 		}
 
+		// Assign the element to one before the last
 		int element = Mathf.Max (0, instance.lastElementInSections - 1);
 		instance.sections[element] = section;
 	}
 
+	IEnumerator DelayDestroySection(LevelSection section){
+		yield return new WaitForSeconds(1.0f);
+		
+		GameObject.Destroy (section.gameObject);
+	}
 
 	public static LevelSection GetNextSection(){
 		return instance.sections [0]; // Which section to get?
@@ -237,12 +283,6 @@ public class LevelController : MonoBehaviour
 
 	public static void UpdateExpansionLevel( int level ){
 		instance.expansionLevel = level;
-	}
-
-	IEnumerator DelayDestroySection(LevelSection section){
-		yield return new WaitForSeconds(1.0f);
-
-		GameObject.Destroy (section.gameObject);
 	}
 
 	public static bool IsStopped{
@@ -263,6 +303,10 @@ public class LevelController : MonoBehaviour
 	
 	public static bool CanCollide{
 		get { return instance.canCollide; }
+	}
+
+	public static Transform LanePositionTransform{
+		get { return instance.lanePositionTransformPrefab.transform; }
 	}
 }
 

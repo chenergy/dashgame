@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
 
+public enum HeightLevel { MIDDLE, UPPER, LOWER };
+
 public class PlayerLaneTransform : MonoBehaviour
 {
 	private int lane;
@@ -10,10 +12,13 @@ public class PlayerLaneTransform : MonoBehaviour
 	}
 
 	public void SetNextPath(LevelSection section){
-		if (section.paths [lane].Length == 5) {
-			LeanTween.moveSpline (this.gameObject, section.paths [lane], LevelController.MaxSpeed / (section.speed + LevelController.GameSpeed)).setOnComplete (AssignNextSectionPath).setEase (LeanTweenType.linear).setOrientToPath (true);
-		} else if ((section.paths [lane].Length % 4) == 0) {
-			LeanTween.move (this.gameObject, section.paths [lane], LevelController.MaxSpeed / (section.speed + LevelController.GameSpeed)).setOnComplete (AssignNextSectionPath).setEase (LeanTweenType.linear).setOrientToPath (true);
+		// Decide which path to take by checking height level
+		Vector3[] path = section.GetPath (this.lane);
+
+		if (path.Length == 5) {
+			LeanTween.moveSpline (this.gameObject, path, LevelController.MaxSpeed / (section.speed + LevelController.GameSpeed)).setOnComplete (AssignNextSectionPath).setEase (LeanTweenType.linear).setOrientToPath (true);
+		} else if ((path.Length % 4) == 0) {
+			LeanTween.move (this.gameObject, path, LevelController.MaxSpeed / (section.speed + LevelController.GameSpeed)).setOnComplete (AssignNextSectionPath).setEase (LeanTweenType.linear).setOrientToPath (true);
 		}
 		section.SetAsTraversed ();
 	}

@@ -7,6 +7,8 @@ public class UIController : MonoBehaviour {
 	public UILabel		itemNameLabel;
 	public UILabel		itemMassLabel;
 	public UILabel		totalMassLabel;
+	public UIButton		quitLabel;
+	public GameObject	countDown;
 
 	public float		itemDisplayLifetime 	= 1.0f;
 	public float		itemDisplayAppearTime 	= 0.25f;
@@ -23,6 +25,8 @@ public class UIController : MonoBehaviour {
 			instance.itemNameLabel.text = "";
 			instance.itemMassLabel.text = "";
 			instance.totalMassLabel.text = "0.000 kg";
+
+			instance.quitLabel.gameObject.SetActive(false);
 		} else {
 			GameObject.Destroy(this.gameObject);
 		}
@@ -47,6 +51,26 @@ public class UIController : MonoBehaviour {
 
 			instance.StartCoroutine ("CreateItem", item);
 		}
+	}
+
+	public static void Resume(){
+		instance.StartCoroutine ("PlayCountDown");
+	}
+
+	IEnumerator PlayCountDown(){
+		float timer = 0.0f;
+
+		foreach (UITweener tween in instance.countDown.GetComponentsInChildren<UITweener>()) {
+			tween.ResetToBeginning();
+			tween.PlayForward();
+		}
+		
+		while (timer < 3.0f) {
+			yield return new WaitForEndOfFrame();
+			timer += Time.deltaTime;
+		}
+
+		Time.timeScale = 1.0f;
 	}
 
 	// Visual feedback of collecting an item
@@ -103,6 +127,18 @@ public class UIController : MonoBehaviour {
 	}
 
 	public void GoToStartMenu(){
+		Time.timeScale = 1.0f;
 		Application.LoadLevel ("start-menu");
+	}
+
+	public void Pause(){
+		Time.timeScale = Time.timeScale == 0 ? 1 : 0;
+
+		if (Time.timeScale == 1.0f) {
+			instance.quitLabel.gameObject.SetActive (false);
+			UIController.Resume();
+		} else {
+			instance.quitLabel.gameObject.SetActive (true);
+		}
 	}
 }

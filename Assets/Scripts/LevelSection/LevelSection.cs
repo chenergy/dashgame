@@ -18,13 +18,12 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 	public Transform[] 		rightPath;			// Positions of right spline path points
 	public SpawnableObjects	collectables;		// Which collectables can spawn
 	public SpawnableObjects	obstacles;			// Which obstacles can spawn
+	public GameObject[]		nextSections;
+	
+	protected Vector3[][] 	paths;	
+	protected bool 			hasTraversed = false;
 
-	[HideInInspector]
-	public Vector3[][] 	paths;
-
-	private bool 		hasTraversed = false;
-
-	void Start(){
+	protected virtual void Start(){
 		// Setup Vector3 points for each pathway
 		Vector3[] leftPoints = new Vector3[leftPath.Length];
 		Vector3[] centerPoints = new Vector3[centerPath.Length];
@@ -47,23 +46,13 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 		this.Spawn (this.collectables);
 		this.Spawn (this.obstacles);
 	}
-
-	/*
-	void OnDrawGizmosSelected(){
-		Transform[][] paths = new Transform[][] { this.leftPath, this.centerPath, this.rightPath };
-		foreach (Transform[] thispath in paths) {
-			for (int i = 0; i < thispath.Length - 1; i++) {
-				Gizmos.DrawLine (thispath [i].position, thispath [i + 1].position);
-			}
-		}
-	}
-	*/
+	
 	public void SetAsTraversed(){
 		this.hasTraversed = true;
 	}
 
 	// Spawn from each spawnables
-	private void Spawn( SpawnableObjects objs ){
+	protected void Spawn( SpawnableObjects objs ){
 		// Anything to collect?
 		if (objs.spawnables.Length > 0) {
 			// Will create collectable?
@@ -78,6 +67,10 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 				}
 			}
 		}
+	}
+
+	public virtual Vector3[] GetPath(int lane){
+		return this.paths [lane];
 	}
 }
 

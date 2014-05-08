@@ -14,11 +14,11 @@ public class GlobalCameraController : MonoBehaviour
 	private Transform		lookTransform;
 	private Vector3			lookLocalPositionOffset;
 
-
 	private Quaternion		baseLocalRotationOffset;
 	private Quaternion		lookLocalRotationOffset;
 
 	private bool 			isCameraMoving = false;
+	private Vector3			rotationLocks;
 
 	void Awake(){
 		if (GlobalCameraController.instance == null) {
@@ -30,14 +30,14 @@ public class GlobalCameraController : MonoBehaviour
 
 
 	void LateUpdate(){
-		/*
 		if (instance.baseTransform != null) {
 			if (!this.isCameraMoving){
-				instance.transform.position = instance.baseTransform.TransformPoint (baseLocalPositionOffset);
+				instance.transform.position = new Vector3(instance.baseTransform.TransformPoint (baseLocalPositionOffset).x, 
+				                                          instance.baseTransform.position.y + instance.baseLocalPositionOffset.y, 
+				                                          instance.baseTransform.TransformPoint (baseLocalPositionOffset).z);
 				instance.transform.rotation = Quaternion.Euler (0, instance.baseTransform.rotation.eulerAngles.y, 0);
 			}
 		}
-		*/
 
 		skyboxCamera.transform.rotation = instance.transform.rotation;
 	}
@@ -46,7 +46,7 @@ public class GlobalCameraController : MonoBehaviour
 	public static void SetNewBaseTransform(Transform baseTransform, Vector3 baseTargetLocalOffset = default(Vector3)){
 		instance.StopCoroutine ("MoveRoutine");
 
-		instance.transform.parent 			= baseTransform;
+		//instance.transform.parent 			= baseTransform;
 		instance.baseTransform 				= baseTransform;
 		instance.baseLocalPositionOffset 	= baseTargetLocalOffset;
 
@@ -100,8 +100,25 @@ public class GlobalCameraController : MonoBehaviour
 
 		instance.transform.localPosition = targetPosition;
 		instance.isCameraMoving = false;
+
+		StartCoroutine ("LerpToBaseTransform");
 	}
 
+	IEnumerator LerpToBaseTransform(){
+		instance.isCameraMoving = true;
+
+		float t = 0.0f;
+		while (t < 1.0f) {
+			yield return new WaitForEndOfFrame();
+			t += Time.deltaTime;
+			instance.transform.position = Vector3.Lerp(instance.transform.position, new Vector3(instance.baseTransform.TransformPoint (baseLocalPositionOffset).x, 
+			                                                                                    instance.baseTransform.position.y + instance.baseLocalPositionOffset.y, 
+			                                                                                    instance.baseTransform.TransformPoint (baseLocalPositionOffset).z), t);
+			instance.transform.rotation = Quaternion.Lerp(instance.transform.rotation, Quaternion.Euler (0, instance.baseTransform.rotation.eulerAngles.y, 0), t);
+		}
+
+		instance.isCameraMoving = false;
+	}
 
 	IEnumerator LookRoutine( float duration ){
 		float t = 0.0f;
