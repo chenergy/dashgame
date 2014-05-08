@@ -116,7 +116,8 @@ public class LevelController : MonoBehaviour
 
 		GameController.SetInGame ();
 
-		AudioController.PlayAudioLoop (this.levelAudio);
+		if (this.levelAudio != null)
+			AudioController.PlayAudioLoop (this.levelAudio);
 	}
 
 	private void Reset(){

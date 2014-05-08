@@ -141,4 +141,12 @@ public class UIController : MonoBehaviour {
 			instance.quitLabel.gameObject.SetActive (true);
 		}
 	}
+
+
+
+	// Test button for jumping
+	public void Jump(){
+		LevelController.ActivePlayer.MoveUp ();
+	}
+
 }

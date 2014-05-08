@@ -255,5 +255,9 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		get { return this.heightLevel; }
 		set { this.heightLevel = value; }
 	}
+
+	public int CurrentLane{
+		get { return this.currentLane; }
+	}
 }
 

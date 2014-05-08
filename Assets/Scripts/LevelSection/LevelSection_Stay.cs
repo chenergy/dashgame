@@ -5,7 +5,7 @@ public class LevelSection_Stay : LevelSection_MultiHeight
 {
 	public override Vector3[] GetPath (int lane)
 	{
-		if (LevelController.ActivePlayer.HeightLevel == secondaryHeight) {
+		if (LevelController.ActivePlayer.HeightLevel == this.secondaryHeight) {
 			return this.secondaryPaths[lane];
 		}
 		

@@ -7,7 +7,7 @@ public class LevelSection_EnterSecondary : LevelSection_MultiHeight
 
 	public override Vector3[] GetPath (int lane)
 	{
-		if (!LevelController.ActivePlayer.IsJumping && lane == this.laneToEnter) {
+		if (!LevelController.ActivePlayer.IsJumping && (LevelController.ActivePlayer.CurrentLane == laneToEnter)) {
 			LevelController.ActivePlayer.HeightLevel = this.secondaryHeight;
 			return this.secondaryPaths [lane];
 		}

@@ -21,13 +21,13 @@ public class LevelSection_MultiHeight : LevelSection
 		
 		// Assign each point
 		for (int i = 0; i < leftPath.Length; i++) {
-			leftPoints [i] = leftPath [i].position;
+			leftPoints [i] = secondaryLeftPath [i].position;
 		}
 		for (int i = 0; i < centerPath.Length; i++) {
-			centerPoints [i] = centerPath [i].position;
+			centerPoints [i] = secondaryCenterPath [i].position;
 		}
 		for (int i = 0; i < rightPath.Length; i++) {
-			rightPoints [i] = rightPath [i].position;
+			rightPoints [i] = secondaryRightPath [i].position;
 		}
 		
 		this.secondaryPaths = new Vector3[][] { leftPoints, centerPoints, rightPoints };
