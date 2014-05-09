@@ -11,6 +11,7 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 		public GameObject[]	spawnables;			// What can spawn in the locations
 	}
 
+	public bool 			isBossSpawner = false;
 	public float 			speed = 20.0f;
 	public Transform 		endpointLocator;	// Transform position and rotation of next section
 	public Transform[] 		leftPath;			// Positions of left spline path points

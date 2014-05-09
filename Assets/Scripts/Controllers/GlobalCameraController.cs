@@ -36,6 +36,7 @@ public class GlobalCameraController : MonoBehaviour
 				                                          instance.baseTransform.position.y + instance.baseLocalPositionOffset.y, 
 				                                          instance.baseTransform.TransformPoint (baseLocalPositionOffset).z);
 				instance.transform.rotation = Quaternion.Euler (0, instance.baseTransform.rotation.eulerAngles.y, 0);
+				instance.transform.localRotation = Quaternion.Euler (instance.transform.localRotation.eulerAngles.x, 0, 0);
 			}
 		}
 
@@ -49,16 +50,13 @@ public class GlobalCameraController : MonoBehaviour
 		//instance.transform.parent 			= baseTransform;
 		instance.baseTransform 				= baseTransform;
 		instance.baseLocalPositionOffset 	= baseTargetLocalOffset;
-
 		instance.StartCoroutine ("MoveRoutine");
 	}
 
 
 	public static void AddToOffset (Vector3 amount){
 		instance.StopCoroutine ("MoveRoutine");
-
 		instance.baseLocalPositionOffset += amount;
-
 		instance.StartCoroutine ("MoveRoutine");
 	}
 
@@ -82,6 +80,7 @@ public class GlobalCameraController : MonoBehaviour
 
 	IEnumerator MoveRoutine(){
 		instance.isCameraMoving = true;
+		//instance.transform.parent = null;
 
 		Vector3 startPosition = instance.transform.localPosition;
 		Vector3 targetPosition = instance.baseLocalPositionOffset;
@@ -100,6 +99,7 @@ public class GlobalCameraController : MonoBehaviour
 
 		instance.transform.localPosition = targetPosition;
 		instance.isCameraMoving = false;
+		instance.transform.parent = instance.baseTransform;
 
 		StartCoroutine ("LerpToBaseTransform");
 	}

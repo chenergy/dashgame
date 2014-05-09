@@ -21,6 +21,15 @@ public class PlayerLaneTransform : MonoBehaviour
 			LeanTween.move (this.gameObject, path, LevelController.MaxSpeed / (section.speed + LevelController.GameSpeed)).setOnComplete (AssignNextSectionPath).setEase (LeanTweenType.linear).setOrientToPath (true);
 		}
 		section.SetAsTraversed ();
+
+
+		// Create a boss if it is the boss section
+		if (this.lane == 0) {
+			if (section.isBossSpawner) {
+				LevelController.CreateBoss ();
+				GlobalCameraController.AddToOffset (new Vector3 (0, 5, -10));
+			}
+		}
 	}
 
 	private void AssignNextSectionPath(){

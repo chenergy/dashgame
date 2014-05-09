@@ -4,14 +4,6 @@ using System.Collections.Generic;
 
 public class LevelController : MonoBehaviour
 {
-	/*
-	[System.Serializable]
-	public class SectionContainer
-	{
-		public GameObject[] sectionPrefabs;
-	}
-	*/
-
 	// Overall Game Factors
 	public float 				speed 			= 40.0f;
 	public float				speedIncrement	= 0.1f;
@@ -31,7 +23,6 @@ public class LevelController : MonoBehaviour
 	public Transform 			nextSectionSpawnLocation;
 	public GameObject			lanePositionTransformPrefab;
 	public GameObject			basePlayerLaneTransformPrefab;
-	//public SectionContainer[]	sectionPrefabsByExpLevel;
 	public GameObject[]			transitionSectionsByExpLevel;
 
 	private GameObject 			parentLevel;
@@ -59,7 +50,6 @@ public class LevelController : MonoBehaviour
 		instance.InitLevel ();
 		Invoke ("StartLevel", 0.5f);
 		UIController.Resume ();
-		//instance.StartLevel ();
 	}
 
 	void Update(){
@@ -75,19 +65,11 @@ public class LevelController : MonoBehaviour
 		if (instance.stopped) {
 			instance.canCollide = GUI.Toggle (new Rect (0, 20, 200, 20), instance.canCollide, "Can Collide?");
 		}
-		/*
-		if (instance.stopped && !instance.gameOver) {
-			if (GUI.Button (new Rect (Screen.width/2 - 50, Screen.height/2 - 50, 100, 100), "Start")) {
-				instance.StartLevel ();
-			}
-		}
-		*/
+
 		if (instance.gameOver) {
 			if (GUI.Button (new Rect (Screen.width/2 - 50, Screen.height - 150, 100, 100), "Restart")) {
 				instance.gameOver = false;
 				Application.LoadLevel("test-scene");
-				//instance.Reset();
-				//instance.Invoke("InitLevel", 0.1f);
 			}
 		}
 	}
@@ -181,22 +163,10 @@ public class LevelController : MonoBehaviour
 		instance.gameOver = true;
 	}
 
+	// Add a specific section to the path
 	public static void GenerateLevelSection( GameObject section, bool destroyFirst = true ){
 		instance.CreateSectionAndAddToPath (section, destroyFirst);
 	}
-	/*
-	// Add a random LevelSection to the path
-	public static void GenerateRandomLevelSection( bool destroyFirst = true ){
-		// Find the next section to be loaded randomly
-		int num = instance.sectionPrefabsByExpLevel [instance.expansionLevel].sectionPrefabs.Length;
-		int next = Random.Range (0, num);
-
-		if (num > 0) {
-			GameObject nextSection = instance.sectionPrefabsByExpLevel [instance.expansionLevel].sectionPrefabs [next];
-			instance.CreateSectionAndAddToPath (nextSection, destroyFirst);
-		}
-	}
-	*/
 
 	// Add a random LevelSection to the path
 	public static void GenerateRandomLevelSection( bool destroyFirst = true ){
@@ -207,7 +177,7 @@ public class LevelController : MonoBehaviour
 		if (num > 0) {
 			// Get the sections from the one right before the last
 			GameObject nextSection = instance.sections [instance.lastElementInSections - 1].nextSections [next];
-			instance.CreateSectionAndAddToPath (nextSection, destroyFirst);
+			instance.CreateSectionAndAddToPath (nextSection, destroyFirst, next);
 		}
 	}
 
@@ -220,24 +190,27 @@ public class LevelController : MonoBehaviour
 	}
 
 	// Create a LevelSection GameObject at the correct endpoint location
-	private void CreateSectionAndAddToPath ( GameObject nextSection, bool destroyFirst ){
+	private void CreateSectionAndAddToPath ( GameObject nextSection, bool destroyFirst, int oldPrefabIndex = 0 ){
 		// Instantiate the next section and update the next location to spawn
-		if (instance.nextSectionSpawnLocation == null) {
-			nextSection = GameObject.Instantiate (nextSection, 
-			                                      Vector3.zero, 
-			                                      Quaternion.identity) as GameObject;
-		} else {
-			nextSection = GameObject.Instantiate (nextSection, 
-			                                      instance.nextSectionSpawnLocation.position, 
-			                                      instance.nextSectionSpawnLocation.rotation) as GameObject;
-			
-		}
+		GameObject createdSection = (instance.nextSectionSpawnLocation == null) ? 
+			GameObject.Instantiate (nextSection, Vector3.zero, Quaternion.identity) as GameObject 
+			: 
+			GameObject.Instantiate (nextSection, instance.nextSectionSpawnLocation.position, instance.nextSectionSpawnLocation.rotation) as GameObject;
 
 		// Set the next spawn location transform
-		instance.nextSectionSpawnLocation = nextSection.GetComponent<LevelSection> ().endpointLocator;
-		nextSection.transform.parent = instance.parentLevel.transform;
+		instance.nextSectionSpawnLocation = createdSection.GetComponent<LevelSection> ().endpointLocator;
+		createdSection.transform.parent = instance.parentLevel.transform;
 
-		LevelSection ls = nextSection.GetComponent<LevelSection> ();
+		LevelSection ls = createdSection.GetComponent<LevelSection> ();
+
+		// Reset the old reference prefab
+		for (int i = 0; i < ls.nextSections.Length; i++) {
+			if (ls.nextSections[i].name == nextSection.name + ("(Clone)")){
+				ls.nextSections[i] = nextSection.GetComponent<LevelSection>().nextSections[oldPrefabIndex];
+				break;
+			}
+		}
+
 		instance.AddSectionPath (ls, destroyFirst );
 	}
 
@@ -275,7 +248,7 @@ public class LevelController : MonoBehaviour
 	}
 
 	public static LevelSection GetNextSection(){
-		return instance.sections [0]; // Which section to get?
+		return instance.sections [0]; // Get first section
 	}
 
 	public static PlayerLaneTransform GetLaneTransform(int lane){

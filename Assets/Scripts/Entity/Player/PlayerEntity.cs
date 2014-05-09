@@ -48,15 +48,12 @@ public class PlayerEntity : MonoBehaviour, IEntity
 					this.transform.localPosition = Vector3.Lerp (this.transform.localPosition, Vector3.up, Time.deltaTime * 10);
 				}*/
 				this.transform.localPosition = Vector3.up;
-
-
 				/*
 				this.transform.position = Vector3.Lerp (this.transform.position, this.targetLane.transform.position + new Vector3 (0, this.playerCollider.Radius, 0), Time.deltaTime * 10.0f);
 				if (Quaternion.Angle(this.transform.rotation, this.targetLane.transform.rotation) > 0.5f){
 					this.transform.rotation = Quaternion.Lerp (this.transform.rotation, Quaternion.Euler (new Vector3 (0, this.targetLane.transform.rotation.eulerAngles.y, 0)), Time.deltaTime * 10);
 				}
 				*/
-
 				this.gobj.transform.Rotate (new Vector3 (this.maxSpeed * Time.deltaTime * (LevelController.GameSpeed / this.startSpeed), 0, 0));
 			}
 		}
@@ -129,7 +126,7 @@ public class PlayerEntity : MonoBehaviour, IEntity
 	public void Expand(){
 		// Create the transition section
 		LevelController.GenerateTransitionSection ();
-
+		GlobalCameraController.AddToOffset (new Vector3 (0, 2, -4));
 		this.playerCollider.Expand (2.0f);
 	}
 
@@ -238,12 +235,14 @@ public class PlayerEntity : MonoBehaviour, IEntity
 		if (this.mass % this.expansionLimit == 0) {
 			this.Expand ();
 
-
+			/*
 			if (this.playerCollider.NumExpansions == 1){
 				LevelController.CreateBoss();
+				GlobalCameraController.AddToOffset (new Vector3 (0, 5, -10));
 			} else {
 				GlobalCameraController.AddToOffset (new Vector3 (0, 2, -4));
 			}
+			*/
 		}
 	}
 

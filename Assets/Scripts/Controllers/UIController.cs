@@ -145,8 +145,19 @@ public class UIController : MonoBehaviour {
 
 
 	// Test button for jumping
-	public void Jump(){
+	public void Up(){
 		LevelController.ActivePlayer.MoveUp ();
 	}
 
+	public void Left(){
+		LevelController.ActivePlayer.MoveLeft ();
+	}
+
+	public void Right(){
+		LevelController.ActivePlayer.MoveRight ();
+	}
+
+	public void Down(){
+		LevelController.ActivePlayer.MoveDown ();
+	}
 }
