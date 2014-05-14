@@ -49,6 +49,10 @@ public abstract class A_Boss : MonoBehaviour, IEntity
 		}
 	}
 
+	protected Vector3 TransformLocalToBoss(Transform t){
+		return this.transform.InverseTransformPoint (t.position);
+	}
+
 	public int Lives{
 		get { return this.lives; }
 	}

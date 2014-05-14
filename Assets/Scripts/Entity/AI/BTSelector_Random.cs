@@ -32,7 +32,16 @@ public class BTSelector_Random : A_BTSelector
 
 	protected override A_BTNode SelectChild ()
 	{
+		// End last action
+		this.children [this.lastVisitedIndex].OnExit ();
+
+		// Change visited index
 		this.lastVisitedIndex = Random.Range (0, this.children.Count);
+
+		// Start new action
+		this.children [this.lastVisitedIndex].OnEnter ();
+
+		// Return new child to be executed
 		return this.children [this.lastVisitedIndex];
 	}
 }

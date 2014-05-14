@@ -73,5 +73,45 @@ public class LevelSection : MonoBehaviour, I_Sectionable
 	public virtual Vector3[] GetPath(int lane){
 		return this.paths [lane];
 	}
+
+	protected virtual void OnDrawGizmos(){
+		// Accuracy of the bezier curve
+		int numDivisions = 20;
+
+		// Set of paths to iterate over
+		Transform[][] newPaths = new Transform[][] { leftPath, centerPath, rightPath };
+
+		foreach (Transform[] path in newPaths) {
+			if (path.Length == 4) {
+				for (int i = 0; i < numDivisions; i++) {
+					Gizmos.DrawLine (this.CalculateBezier (path [0].position, path [2].position, path [1].position, path [3].position, (i * 1.0f / numDivisions)), 
+					                 this.CalculateBezier (path [0].position, path [2].position, path [1].position, path [3].position, ((i + 1) * 1.0f / numDivisions)));
+				}
+			}
+			if (path.Length == 8) {
+				for (int i = 0; i < numDivisions; i++) {
+					Gizmos.DrawLine (this.CalculateBezier (path [0].position, path [2].position, path [1].position, path [3].position, (i * 1.0f / numDivisions)), 
+					                 this.CalculateBezier (path [0].position, path [2].position, path [1].position, path [3].position, ((i + 1) * 1.0f / numDivisions)));
+					Gizmos.DrawLine (this.CalculateBezier (path [4].position, path [6].position, path [5].position, path [7].position, (i * 1.0f / numDivisions)), 
+					                 this.CalculateBezier (path [4].position, path [6].position, path [5].position, path [7].position, ((i + 1) * 1.0f / numDivisions)));
+				}
+			}
+		}
+	}
+
+	protected Vector3 CalculateBezier(Vector3 P1, Vector3 H1, Vector3 H2, Vector3 P2, float t){
+		float u = 1 - t;
+		float tt = t * t;
+		float uu = u * u;
+		float uuu = uu * u;
+		float ttt = tt * t;
+		
+		Vector3 p = uuu * P1; //first term
+		p += 3 * uu * t * H1; //second term
+		p += 3 * u * tt * H2; //third term
+		p += ttt * P2; //fourth term
+		
+		return p;
+	}
 }
 

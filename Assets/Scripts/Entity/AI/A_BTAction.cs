@@ -8,5 +8,8 @@ public abstract class A_BTAction : A_BTNode
 	public A_BTAction( PlayerEntity player ) : base(){
 		this.player = player;
 	}
+
+	public override void OnEnter() {}
+	public override void OnExit() {}
 }
 

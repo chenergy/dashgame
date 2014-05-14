@@ -24,6 +24,9 @@ public abstract class A_BTSelector : A_BTNode
 		this.children.Add (child);
 	}
 
+	public override void OnEnter() {}
+	public override void OnExit() {}
+
 	protected abstract A_BTNode SelectChild();
 }
 

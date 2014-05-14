@@ -17,7 +17,9 @@ public abstract class A_BTNode {
 	public BTStatus Status{
 		get { return this.status; }
 	}
-
+	
+	public abstract void OnEnter();
+	public abstract void OnExit();
 	public abstract BTStatus Execute ();
 }
 

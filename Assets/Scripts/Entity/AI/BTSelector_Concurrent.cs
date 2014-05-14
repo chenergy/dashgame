@@ -34,9 +34,17 @@ public class BTSelector_Concurrent : A_BTSelector
 	}
 	
 	protected override A_BTNode SelectChild (){
+		// End last action
+		this.children [this.lastVisitedIndex].OnExit ();
+
+		// Increment last visited child
 		this.lastVisitedIndex++;
-		
+
 		if (this.lastVisitedIndex < this.children.Count) {
+			// Begin new action
+			this.children [this.lastVisitedIndex].OnEnter ();
+
+			// Return new child
 			return this.children [this.lastVisitedIndex];
 		}
 		

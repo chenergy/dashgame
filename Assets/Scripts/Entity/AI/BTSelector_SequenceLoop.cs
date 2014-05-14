@@ -8,16 +8,22 @@ public class BTSelector_SequenceLoop : BTSelector_Sequence
 	}
 	
 	protected override A_BTNode SelectChild (){
+		// End last action
+		this.children [this.lastVisitedIndex].OnExit ();
+
+		// Change visited index
 		this.lastVisitedIndex++;
-		
-		if (this.lastVisitedIndex < this.children.Count) {
-			return this.children [this.lastVisitedIndex];
-		} else {
+
+		if (this.lastVisitedIndex >= this.children.Count) {
+			// Restart to first child if last
 			this.lastVisitedIndex = 0;
-			return this.children [this.lastVisitedIndex];
 		}
+
+		// Start new action
+		this.children [this.lastVisitedIndex].OnEnter ();
 		
-		return null;
+		// Return new child to be executed
+		return this.children [this.lastVisitedIndex];
 	}
 }
 
