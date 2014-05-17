@@ -62,6 +62,7 @@ public class LevelController : MonoBehaviour
 
 
 	void OnGUI(){
+		/*
 		if (instance.stopped) {
 			instance.canCollide = GUI.Toggle (new Rect (0, 20, 200, 20), instance.canCollide, "Can Collide?");
 		}
@@ -72,12 +73,13 @@ public class LevelController : MonoBehaviour
 				Application.LoadLevel("test-scene");
 			}
 		}
+		*/
 	}
 
 	private void InitLevel(){
 		if (instance.activePlayer == null) {
 			instance.activePlayer = (GameObject.Instantiate (instance.playerPrefab, 
-			                                                 Vector3.zero, 
+			                                                 instance.nextSectionSpawnLocation.position + Vector3.up, 
 			                                                 instance.playerPrefab.transform.rotation) 
 			                         as GameObject).GetComponent<PlayerEntity> ();
 		}
@@ -161,6 +163,8 @@ public class LevelController : MonoBehaviour
 		instance.activePlayer.Die ();
 		instance.stopped = true;
 		instance.gameOver = true;
+
+		UIController.StartRespawnSlider ();
 	}
 
 	// Add a specific section to the path

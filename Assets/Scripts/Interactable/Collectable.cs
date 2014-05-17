@@ -65,6 +65,7 @@ public class Collectable : MonoBehaviour, I_Interactable
 					p.AddMass(this.mass);
 					UIController.UpdateMass (p.Mass);
 					pc.AddCollectable (this.mesh);
+					GameController.AddCollectable(this, 1, this.mass);
 				}
 
 				GameObject.Destroy (this.gameObject);

@@ -44,5 +44,9 @@ public class PlayerLaneTransform : MonoBehaviour
 	public void Stop(){
 		LeanTween.pause (this.gameObject);
 	}
+
+	public void Resume(){
+		LeanTween.resume (this.gameObject);
+	}
 }
 

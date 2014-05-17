@@ -9,6 +9,7 @@ public class UIController : MonoBehaviour {
 	public UILabel		totalMassLabel;
 	public UIButton		quitLabel;
 	public GameObject	countDown;
+	public UISlider		respawnSlider;
 
 	public float		itemDisplayLifetime 	= 1.0f;
 	public float		itemDisplayAppearTime 	= 0.25f;
@@ -27,6 +28,8 @@ public class UIController : MonoBehaviour {
 			instance.totalMassLabel.text = "0.000 kg";
 
 			instance.quitLabel.gameObject.SetActive(false);
+
+			instance.respawnSlider.gameObject.SetActive(false);
 		} else {
 			GameObject.Destroy(this.gameObject);
 		}
@@ -55,6 +58,26 @@ public class UIController : MonoBehaviour {
 
 	public static void Resume(){
 		instance.StartCoroutine ("PlayCountDown");
+	}
+
+	public static void StartRespawnSlider(){
+		instance.respawnSlider.gameObject.SetActive (true);
+		instance.respawnSlider.value = 1.0f;
+		instance.StartCoroutine ("RespawnRoutine");
+	}
+
+	IEnumerator RespawnRoutine(){
+		float delay = 3.0f;
+		float timer = delay;
+
+		while (timer > 0) {
+			yield return new WaitForEndOfFrame();
+			this.respawnSlider.value = timer / delay;
+			timer -= Time.deltaTime;
+		}
+
+		GameController.SetResults ();
+		Application.LoadLevel ("results");
 	}
 
 	IEnumerator PlayCountDown(){
@@ -142,7 +165,16 @@ public class UIController : MonoBehaviour {
 		}
 	}
 
+	public void Respawn(){
+		Time.timeScale = 1.0f;
+		this.respawnSlider.gameObject.SetActive (false);
+		instance.StopCoroutine ("RespawnRoutine");
+	}
 
+	// Go to the results scene
+	public void GoToResults(){
+		Application.LoadLevel ("results");
+	}
 
 	// Test button for jumping
 	public void Up(){
